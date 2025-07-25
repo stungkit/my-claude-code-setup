@@ -16,6 +16,23 @@ My Claude Code project's starter settings and Claude Code hooks and slash comman
 
 The Claude Code hook is for `STOP` which uses Terminal-Notifier to show macOS desktop notifications whenever Claude Code stops and finishes it's response https://github.com/centminmod/terminal-notifier-setup.
 
+## Claude Code Subagents
+
+Claude Code subagents are specialized tools designed to handle complex, multi-step tasks autonomously. Learn more about [subagents in the official documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents).
+
+### memory-bank-synchronizer
+
+- **Purpose**: Synchronizes memory bank documentation with actual codebase state, ensuring architectural patterns in memory files match implementation reality
+- **Location**: `.claude/agents/memory-bank-synchronizer.md`
+- **Key Responsibilities**:
+  - Pattern documentation synchronization
+  - Architecture decision updates  
+  - Technical specification alignment
+  - Implementation status tracking
+  - Code example freshness validation
+  - Cross-reference validation
+- **Usage**: Proactively maintains consistency between CLAUDE-*.md files and source code to ensure documentation remains accurate and trustworthy
+
 ## Claude Code Slash Commands
 
 ### `/anthropic` Commands
