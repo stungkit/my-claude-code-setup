@@ -18,7 +18,7 @@ The Claude Code hook is for `STOP` which uses Terminal-Notifier to show macOS de
 
 ## Claude Code Subagents
 
-Claude Code subagents are specialized tools designed to handle complex, multi-step tasks autonomously. Learn more about [subagents in the official documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents).
+Claude Code subagents are specialized tools designed to handle complex, multi-step tasks autonomously. A key benefit of Claude Code subagents is that uses its own context window separate from the main conversation and can use it's own custom prompt. Learn more about [subagents in the official documentation](https://docs.anthropic.com/en/docs/claude-code/sub-agents).
 
 ### memory-bank-synchronizer
 
@@ -32,6 +32,19 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Code example freshness validation
   - Cross-reference validation
 - **Usage**: Proactively maintains consistency between CLAUDE-*.md files and source code to ensure documentation remains accurate and trustworthy
+
+### code-searcher
+
+- **Purpose**: A specialized agent for efficiently searching the codebase, finding relevant files, and summarizing code. Use this for any task that involves locating specific functions, classes, or logic
+- **Location**: `.claude/agents/code-searcher.md`
+- **Key Responsibilities**:
+  - Efficient codebase navigation and search
+  - Function and class location
+  - Code pattern identification
+  - Bug source location assistance
+  - Feature implementation analysis
+  - Integration point discovery
+- **Usage**: Use when you need to locate specific functions, classes, or logic within the codebase, or when investigating how features are implemented
 
 ## Claude Code Slash Commands
 
