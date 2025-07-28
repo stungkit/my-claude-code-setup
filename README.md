@@ -46,6 +46,18 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Integration point discovery
 - **Usage**: Use when you need to locate specific functions, classes, or logic within the codebase, or when investigating how features are implemented
 
+### get-current-datetime
+
+- **Purpose**: Simple DateTime utility for accurate Brisbane, Australia (GMT+10) timezone values. Executes bash date commands and returns only the raw output without formatting or explanations
+- **Location**: `.claude/agents/get-current-datetime.md`
+- **Key Responsibilities**:
+  - Execute `TZ='Australia/Brisbane' date` commands
+  - Provide accurate Brisbane timezone timestamps
+  - Support multiple format options (default, filename, readable, ISO)
+  - Eliminate timezone confusion and month errors
+  - Return raw command output without additional processing
+- **Usage**: Use when creating files with timestamps, generating reports with dates, or needing accurate Australian timezone values for any purpose
+
 ## Claude Code Slash Commands
 
 ### `/anthropic` Commands
