@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 * ALWAYS prefer editing an existing file to creating a new one.
 * NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
 * When you update or modify core context files, also update markdown documentation and memory bank
-* When asked to commit changes, exclude CLAUDE.md and CLAUDE-*.md referenced memory bank system files from any commits.
+* When asked to commit changes, exclude CLAUDE.md and CLAUDE-*.md referenced memory bank system files from any commits. Never delete these files.
 
 ## Memory Bank System
 
