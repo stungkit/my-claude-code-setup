@@ -164,6 +164,16 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Focuses on safety, incremental progress, and maintainability
   - Usage: `/refactor-code`
 
+## Claude Code Plan Weekly Rate Limits
+
+If you are using Claude monthly subscription plans for Claude Code, new weekly rate limits will apply from August 28, 2025 in addition to max 50x 5hr session limits per month:
+
+| Plan               | Sonnet 4 (hrs/week) | Opus 4 (hrs/week) |
+|--------------------|---------------------|-------------------|
+| Pro                | 40–80               | –                 |
+| Max ($100 /mo)     | 140–280             | 15–35             |
+| Max ($200 /mo)     | 240–480             | 24–40             |
+
 ## Claude Code settings
 
 > Configure Claude Code with global and project-level settings, and environment variables.
