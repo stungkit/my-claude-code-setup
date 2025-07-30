@@ -58,6 +58,19 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Return raw command output without additional processing
 - **Usage**: Use when creating files with timestamps, generating reports with dates, or needing accurate Australian timezone values for any purpose
 
+### ux-design-expert
+
+- **Purpose**: Comprehensive UX/UI design guidance specialist combining user experience optimization, premium interface design, and scalable design systems with Tailwind CSS and Highcharts data visualization
+- **Location**: `.claude/agents/ux-design-expert.md`
+- **Key Responsibilities**:
+  - UX flow optimization and friction reduction
+  - Premium UI design with sophisticated visual hierarchies
+  - Scalable design systems architecture using Tailwind CSS
+  - Data visualization strategy with Highcharts implementations
+  - Accessibility compliance and performance optimization
+  - Component library design with atomic methodology
+- **Usage**: Use for dashboard UX improvements, premium component libraries, complex user flow optimization, design system creation, or any comprehensive UX/UI design guidance needs
+
 ## Claude Code Slash Commands
 
 ### `/anthropic` Commands
