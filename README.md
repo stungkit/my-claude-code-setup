@@ -8,8 +8,8 @@
 My Claude Code project's starter settings and Claude Code hooks and slash commands. 
 
 1. Copy the files to your project directory.
-2. Then modify the template files and `CLAUDE.md` to your liking.
-3. The run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
+2. Modify the template files and `CLAUDE.md` to your liking.
+3. Run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
 
 I also install the following MCP servers:
 
