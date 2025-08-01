@@ -5,7 +5,13 @@
 
 # My Claude Code Project's Starter Settings
 
-My Claude Code project's starter settings and Claude Code hooks and slash commands which include the following MCP servers
+My Claude Code project's starter settings and Claude Code hooks and slash commands. 
+
+1. Copy the files to your project directory.
+2. Then modify the template files and `CLAUDE.md` to your liking.
+3. The run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
+
+I also install the following MCP servers:
 
 * [Gemini CLI MCP](https://github.com/centminmod/gemini-cli-mcp-server)
 * [Cloudflare Documentation MCP](https://github.com/cloudflare/mcp-server-cloudflare/tree/main/apps/docs-vectorize)
