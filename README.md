@@ -41,7 +41,7 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
 
 ### code-searcher
 
-- **Purpose**: A specialized agent for efficiently searching the codebase, finding relevant files, and summarizing code. Supports both standard detailed analysis and optional Chain of Draft (CoD) ultra-concise mode when explicitly requested for 80% token reduction
+- **Purpose**: A specialized agent for efficiently searching the codebase, finding relevant files, and summarizing code. Supports both standard detailed analysis and optional [Chain of Draft (CoD)](https://github.com/centminmod/or-cli/blob/master/examples/example-code-inspection-prompts3.md) ultra-concise mode when explicitly requested for 80% token reduction
 - **Location**: `.claude/agents/code-searcher.md`
 - **Key Responsibilities**:
   - Efficient codebase navigation and search
