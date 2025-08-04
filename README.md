@@ -41,7 +41,7 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
 
 ### code-searcher
 
-- **Purpose**: A specialized agent for efficiently searching the codebase, finding relevant files, and summarizing code. Use this for any task that involves locating specific functions, classes, or logic
+- **Purpose**: A specialized agent for efficiently searching the codebase, finding relevant files, and summarizing code. Supports both standard detailed analysis and optional Chain of Draft (CoD) ultra-concise mode when explicitly requested for 80% token reduction
 - **Location**: `.claude/agents/code-searcher.md`
 - **Key Responsibilities**:
   - Efficient codebase navigation and search
@@ -50,7 +50,10 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Bug source location assistance
   - Feature implementation analysis
   - Integration point discovery
-- **Usage**: Use when you need to locate specific functions, classes, or logic within the codebase, or when investigating how features are implemented
+  - Chain of Draft (CoD) mode for ultra-concise reasoning with minimal tokens
+- **Usage**: Use when you need to locate specific functions, classes, or logic within the codebase. Request "use CoD", "chain of draft", or "draft mode" for ultra-concise responses with ~80% fewer tokens
+  - **Standard mode**: "Find the payment processing code" → Full detailed analysis
+  - **CoD mode**: "Find the payment processing code using CoD" → "Payment→glob:*payment*→found:payment.service.ts:45"
 
 ### get-current-datetime
 
