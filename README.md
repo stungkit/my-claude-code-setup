@@ -8,7 +8,7 @@
 My Claude Code project's starter settings and Claude Code hooks and slash commands. 
 
 1. Copy the files to your project directory.
-2. Modify the template files and `CLAUDE.md` to your liking.
+2. Modify the template files and `CLAUDE.md` to your liking. `.claude/settings.json` needs to install Terminal-Notifier for macOS https://github.com/centminmod/terminal-notifier-setup. If you're not using macOS, you can remove `.claude/settings.json`.
 3. Run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
 
 I also install the following MCP servers:
