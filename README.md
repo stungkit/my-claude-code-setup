@@ -5,11 +5,11 @@
 
 # My Claude Code Project's Starter Settings
 
-My Claude Code project's starter settings and Claude Code hooks and slash commands. 
+My Claude Code project's starter settings and Claude Code hooks and slash commands are provided in this repository for users to try out. Be sure to read the official Claude Code docs first at https://docs.anthropic.com/en/docs/claude-code/overview. 
 
 1. Copy the files to your project directory (where you intended codebase will be).
 2. Modify the template files and `CLAUDE.md` to your liking. `.claude/settings.json` needs to install Terminal-Notifier for macOS https://github.com/centminmod/terminal-notifier-setup. If you're not using macOS, you can remove `.claude/settings.json`.
-3. Run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
+3. After launching Claude Code for the first time within your project directory, run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
 4. Optional step highly recommended: Install Visual Studio Code ([beginners YouTube video guide](https://www.youtube.com/watch?v=rPITZvwyoMc) and [here](https://www.youtube.com/watch?v=P-5bWpUbO60)) and [Claude Code VSC Extension](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code).
 5. Optional step highly recommended: Sign up for [Github.com](https://github.com/) account and install Git for Visual Studio Code. Checkout YouTube guides [here](https://www.youtube.com/watch?v=twsYxYaQikI) and [here](https://www.youtube.com/watch?v=z5jZ9lrSpqk).
 
