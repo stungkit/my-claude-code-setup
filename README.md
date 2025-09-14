@@ -8,10 +8,11 @@
 My Claude Code project's starter settings and Claude Code hooks and slash commands are provided in this repository for users to try out. Be sure to read the official Claude Code docs first at https://docs.anthropic.com/en/docs/claude-code/overview and sign up for a [paid Claude AI account](https://claude.ai/) to use Claude Code. You can pay for Claude Pro $20/month, Claude Max $100/month or Claude Max $200/month. The paid Claude tier plans will include varying quotas for usage and rate limits outlined [here](https://support.anthropic.com/en/articles/9797557-usage-limit-best-practices).
 
 1. Copy the files in this Github repo to your project directory (where you intended codebase will be).
-2. Modify the template files and `CLAUDE.md` to your liking. `.claude/settings.json` needs to install Terminal-Notifier for macOS https://github.com/centminmod/terminal-notifier-setup. If you're not using macOS, you can remove `.claude/settings.json`.
-3. After launching Claude Code for the first time within your project directory, run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per `CLAUDE.md` instructions.
+2. Modify the template files and CLAUDE.md`to your liking. `.claude/settings.json` needs to install Terminal-Notifier for macOS https://github.com/centminmod/terminal-notifier-setup. If you're not using macOS, you can remove `.claude/settings.json`.
+3. After launching Claude Code for the first time within your project directory, run `/init` so that Claude Code analyses your code base and then populates your memory bank system files as per CLAUDE.md` instructions.
 4. Optional step highly recommended: Install Visual Studio Code ([beginners YouTube video guide](https://www.youtube.com/watch?v=rPITZvwyoMc) and [here](https://www.youtube.com/watch?v=P-5bWpUbO60)) and [Claude Code VSC Extension](https://marketplace.visualstudio.com/items?itemName=anthropic.claude-code).
 5. Optional step highly recommended: Sign up for [Github.com](https://github.com/) account and install Git for Visual Studio Code. Checkout YouTube guides [here](https://www.youtube.com/watch?v=twsYxYaQikI) and [here](https://www.youtube.com/watch?v=z5jZ9lrSpqk).
+6. CLAUDE.md updated to instruct models to use faster tools so for macOS: `brew install ripgrep fd jq`
 
 I also install the following MCP servers ([install commands](#claude-code-mcp-servers)):
 
