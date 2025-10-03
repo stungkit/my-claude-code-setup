@@ -62,7 +62,22 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:openrouter.ai)",
       "WebFetch(domain:www.comet.com)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__list_network_requests",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill_form",
+      "mcp__chrome-devtools__hover",
+      "mcp__chrome-devtools__emulate_cpu",
+      "mcp__chrome-devtools__emulate_network",
+      "mcp__chrome-devtools__evaluate_script",
+      "mcp__chrome-devtools__resize_page",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__navigate_page_history",
     ],
     "deny": []
   }

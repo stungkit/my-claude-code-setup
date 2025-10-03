@@ -19,6 +19,7 @@ I also install the following MCP servers ([install commands](#claude-code-mcp-se
 * [Gemini CLI MCP](https://github.com/centminmod/gemini-cli-mcp-server)
 * [Cloudflare Documentation MCP](https://github.com/cloudflare/mcp-server-cloudflare/tree/main/apps/docs-vectorize)
 * [Context 7 MCP](https://github.com/upstash/context7)
+* [Chrome Devtools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
 * [Notion MCP](https://github.com/makenotion/notion-mcp-server)
 
 ## Claude Code Hooks
@@ -388,6 +389,64 @@ claude mcp add --transport sse context7 https://mcp.context7.com/sse -s user
 claude mcp add-json notionApi '{"type":"stdio","command":"npx","args":["-y","@notionhq/notion-mcp-server"],"env":{"OPENAPI_MCP_HEADERS":"{\"Authorization\": \"Bearer ntn_API_KEY\", \"Notion-Version\": \"2022-06-28\"}"}}' -s user
 ```
 
+### Chrome Devtools MCP sever
+
+[Chrome Devtools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
+
+This MCP server can take up to 17K of Claude's context window so I only install it when project needs it via `--mcp-config` parameter when running Claude client:
+
+```bash
+claude --mcp-config .claude/mcp/chrome-devtools.json
+```
+
+Where `.claude/mcp/chrome-devtools.json`
+
+```json
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
+    }
+  }
+}
+```
+
+Chrome Devtool MCP server takes up ~16,977 tokens across 26 MCP tools
+
+```bash
+     mcp__chrome-devtools__list_console_messages (chrome-devtools): 584 tokens
+     mcp__chrome-devtools__emulate_cpu (chrome-devtools): 651 tokens
+     mcp__chrome-devtools__emulate_network (chrome-devtools): 694 tokens
+     mcp__chrome-devtools__click (chrome-devtools): 636 tokens
+     mcp__chrome-devtools__drag (chrome-devtools): 638 tokens
+     mcp__chrome-devtools__fill (chrome-devtools): 644 tokens
+     mcp__chrome-devtools__fill_form (chrome-devtools): 676 tokens
+     mcp__chrome-devtools__hover (chrome-devtools): 609 tokens
+     mcp__chrome-devtools__upload_file (chrome-devtools): 651 tokens
+     mcp__chrome-devtools__get_network_request (chrome-devtools): 618 tokens
+     mcp__chrome-devtools__list_network_requests (chrome-devtools): 783 tokens
+     mcp__chrome-devtools__close_page (chrome-devtools): 624 tokens
+     mcp__chrome-devtools__handle_dialog (chrome-devtools): 645 tokens
+     mcp__chrome-devtools__list_pages (chrome-devtools): 582 tokens
+     mcp__chrome-devtools__navigate_page (chrome-devtools): 642 tokens
+     mcp__chrome-devtools__navigate_page_history (chrome-devtools): 656 tokens
+     mcp__chrome-devtools__new_page (chrome-devtools): 637 tokens
+     mcp__chrome-devtools__resize_page (chrome-devtools): 629 tokens
+     mcp__chrome-devtools__select_page (chrome-devtools): 619 tokens
+     mcp__chrome-devtools__performance_analyze_insight (chrome-devtools): 649 tokens
+     mcp__chrome-devtools__performance_start_trace (chrome-devtools): 689 tokens
+     mcp__chrome-devtools__performance_stop_trace (chrome-devtools): 586 tokens
+     mcp__chrome-devtools__take_screenshot (chrome-devtools): 803 tokens
+     mcp__chrome-devtools__evaluate_script (chrome-devtools): 775 tokens
+     mcp__chrome-devtools__take_snapshot (chrome-devtools): 614 tokens
+     mcp__chrome-devtools__wait_for (chrome-devtools): 643 tokens
+```
+
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=centminmod/my-claude-code-setup&type=Date)](https://www.star-history.com/#centminmod/my-claude-code-setup&Date)
+
