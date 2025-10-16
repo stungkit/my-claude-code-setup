@@ -130,6 +130,13 @@ Claude Code subagents are specialized tools designed to handle complex, multi-st
   - Matches existing README style and tone
   - Usage: `/create-readme-section "Create an installation section for my Python project"`
 
+- **`/create-release-note`** - Generate comprehensive release documentation from recent commits with dual output formats
+  - Interactive workflow with two modes: by commit count or by commit hash range (last 24/48/72 hours)
+  - Produces customer-facing release note (value-focused, no technical jargon) and technical engineering note (SHA references, file paths)
+  - Comprehensive commit analysis with grouping by subsystem and traceability to specific SHAs
+  - Supports direct arguments for quick generation or interactive selection for precise control
+  - Usage: `/create-release-note` (interactive), `/create-release-note 20` (last 20 commits), or select commit hash after viewing recent commits
+
 ### `/security` Commands
 
 - **`/security-audit`** - Perform comprehensive security audit of the codebase
