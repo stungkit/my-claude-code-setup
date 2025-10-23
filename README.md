@@ -21,6 +21,7 @@ I also install the following MCP servers ([install commands](#claude-code-mcp-se
 * [Context 7 MCP](https://github.com/upstash/context7)
 * [Chrome Devtools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
 * [Notion MCP](https://github.com/makenotion/notion-mcp-server)
+* [Claude Code Usage Metrics MCP](https://github.com/centminmod/claude-code-opentelemetry-setup)
 
 ## Claude Code Hooks
 
@@ -363,6 +364,29 @@ modifies Python files, or prevent modifications to production configuration
 files by blocking Write operations to certain paths
 
 ## Claude Code MCP Servers
+
+[Claude Code Usage Metrics MCP](https://github.com/centminmod/claude-code-opentelemetry-setup)
+
+```bash
+claude mcp add --transport stdio metrics -s user -- uv run --directory /path/to/your/mcp-server metrics-server
+```
+```bash
+claude mcp list
+Checking MCP server health...
+
+context7: https://mcp.context7.com/sse (SSE) - ✓ Connected
+cf-docs: https://docs.mcp.cloudflare.com/sse (SSE) - ✓ Connected
+metrics: uv run --directory /path/to/your/mcp-server metrics-server - ✓ Connected
+```
+MCP tool call `get_current_cost`. Returns today's total USD cost from Prometheus.
+```bash
+{
+  "metric": "Total Cost Today",
+  "value": 27.149809833783127,
+  "formatted": "$27.1498",
+  "unit": "currencyUSD"
+}
+```
 
 ### Gemini CLI MCP Server
 
