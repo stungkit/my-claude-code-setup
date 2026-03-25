@@ -1,15 +1,27 @@
 ---
 name: ai-image-creator
-description: Generate PNG images using AI (Google Gemini 3.1 Flash via OpenRouter or Google AI Studio, proxied through Cloudflare AI Gateway BYOK). Use when user asks to "generate an image", "create a PNG", "make an icon", or needs AI-generated visual assets for the project. Supports configurable aspect ratios and resolutions.
+description: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK). Use when user asks to "generate an image", "create a PNG", "make an icon", or needs AI-generated visual assets for the project. Supports model selection via keywords (gemini, riverflow, flux2, seedream, gpt5), configurable aspect ratios and resolutions.
 allowed-tools: Bash, Read, Write
 compatibility: Requires uv (Python runner) and network access. Environment variables for CF AI Gateway or direct API keys must be configured in shell profile (~/.zshrc on macOS, ~/.bashrc on Linux, or System Environment Variables on Windows).
 metadata:
-  tags: image-generation, ai, openrouter, cloudflare, gemini
+  tags: image-generation, ai, openrouter, cloudflare, gemini, flux2, riverflow, seedream, gpt5
 ---
 
 # AI Image Creator
 
-Generate PNG images via Google Gemini 3.1 Flash, routed through Cloudflare AI Gateway BYOK or directly via OpenRouter/Google AI Studio.
+Generate PNG images via multiple AI models, routed through Cloudflare AI Gateway BYOK or directly via OpenRouter/Google AI Studio.
+
+## Model Selection
+
+When the user mentions a model keyword in their image request, use the corresponding `--model` flag:
+
+| Keyword | Model | Use When User Says |
+|---------|-------|--------------------|
+| `gemini` | [Google Gemini 3.1 Flash](https://openrouter.ai/google/gemini-3.1-flash-image-preview) (default) | "gemini", "generate an image" (no model specified) |
+| `riverflow` | [Sourceful Riverflow v2 Fast](https://openrouter.ai/sourceful/riverflow-v2-fast) | "riverflow", "use riverflow" |
+| `flux2` | [FLUX.2 Klein 4B](https://openrouter.ai/black-forest-labs/flux.2-klein-4b) | "flux2", "flux", "use flux" |
+| `seedream` | [ByteDance SeedDream 4.5](https://openrouter.ai/bytedance-seed/seedream-4.5) | "seedream", "use seedream" |
+| `gpt5` | [OpenAI GPT-5 Image Mini](https://openrouter.ai/openai/gpt-5-image-mini) | "gpt5", "gpt5 image", "use gpt5" |
 
 ## Instructions
 
@@ -42,7 +54,15 @@ uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
   [--model "model-id"]
 ```
 
-Or with inline prompt:
+With a specific model:
+```bash
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  --output "OUTPUT_PATH" \
+  --model riverflow \
+  --prompt "A serene mountain lake at sunset"
+```
+
+Or with inline prompt (default model):
 ```bash
 uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
   --output "OUTPUT_PATH" \
@@ -77,7 +97,8 @@ If the user needs resizing, format conversion, or other manipulation, first dete
 | `--provider` | No | `openrouter` | `openrouter` or `google` |
 | `--aspect-ratio` | No | model default | OpenRouter only: `1:1`, `16:9`, `9:16`, `3:2`, `2:3`, `4:3`, `3:4`, `4:5`, `5:4`, `21:9` |
 | `--image-size` | No | model default | OpenRouter only: `0.5K`, `1K`, `2K`, `4K` |
-| `--model` | No | auto per provider | Override model ID |
+| `--model` | No | `gemini` | Model keyword (`gemini`, `riverflow`, `flux2`, `seedream`, `gpt5`) or full OpenRouter model ID |
+| `--list-models` | No | -- | List available model keywords and exit |
 
 ## Environment Variables
 

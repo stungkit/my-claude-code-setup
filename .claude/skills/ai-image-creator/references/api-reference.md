@@ -1,5 +1,21 @@
 # API Reference — AI Image Creator
 
+## Supported Models (OpenRouter)
+
+All models use the same OpenRouter `/v1/chat/completions` endpoint and response format. The `modalities` value differs by model type.
+
+| Keyword | Model ID | Modalities | Type |
+|---------|----------|------------|------|
+| `gemini` | [`google/gemini-3.1-flash-image-preview`](https://openrouter.ai/google/gemini-3.1-flash-image-preview) | `["image", "text"]` | Multimodal (default) |
+| `riverflow` | [`sourceful/riverflow-v2-fast`](https://openrouter.ai/sourceful/riverflow-v2-fast) | `["image"]` | Image-only |
+| `flux2` | [`black-forest-labs/flux.2-klein-4b`](https://openrouter.ai/black-forest-labs/flux.2-klein-4b) | `["image"]` | Image-only |
+| `seedream` | [`bytedance-seed/seedream-4.5`](https://openrouter.ai/bytedance-seed/seedream-4.5) | `["image"]` | Image-only |
+| `gpt5` | [`openai/gpt-5-image-mini`](https://openrouter.ai/openai/gpt-5-image-mini) | `["image", "text"]` | Multimodal |
+
+**Important:** Image-only models MUST use `"modalities": ["image"]`. Using `["image", "text"]` may cause errors with these models. The script handles this automatically when using keywords.
+
+---
+
 ## Providers & Endpoints
 
 ### OpenRouter (via CF AI Gateway)

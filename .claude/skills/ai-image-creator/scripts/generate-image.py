@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
-"""AI Image Generator — Generate PNG images via OpenRouter or Google AI Studio.
+"""AI Image Generator — Generate PNG images via multiple OpenRouter models or Google AI Studio.
+
+Supports multiple image generation models via keyword shortcuts:
+    gemini     — Google Gemini 3.1 Flash (default, multimodal)
+    riverflow  — Sourceful Riverflow v2 Fast (image-only)
+    flux2      — Black Forest Labs FLUX.2 Klein 4B (image-only)
+    seedream   — ByteDance SeedDream 4.5 (image-only)
+    gpt5       — OpenAI GPT-5 Image Mini (multimodal)
 
 Routes through Cloudflare AI Gateway BYOK when configured, with automatic
 fallback to direct API calls. Uses only Python stdlib (no pip dependencies).
 
 Usage:
     uv run python generate-image.py --output path.png --prompt "description"
+    uv run python generate-image.py --output path.png --model riverflow --prompt "description"
     uv run python generate-image.py --output path.png --prompt-file prompt.txt
-    uv run python generate-image.py --output path.png --prompt "test" --debug
+    uv run python generate-image.py --list-models
 """
 
 from __future__ import annotations
@@ -28,6 +36,37 @@ from typing import Any  # noqa: F401 — used in type hints below
 DEFAULT_MODELS = {
     "openrouter": "google/gemini-3.1-flash-image-preview",
     "google": "gemini-3.1-flash-image-preview",
+}
+
+# Model registry — maps keyword shortcuts to model metadata.
+# All models use the OpenRouter /v1/chat/completions endpoint.
+# Image-only models use modalities: ["image"], multimodal use ["image", "text"].
+MODEL_REGISTRY: dict[str, dict[str, Any]] = {
+    "gemini": {
+        "id": "google/gemini-3.1-flash-image-preview",
+        "modalities": ["image", "text"],
+        "description": "Google Gemini 3.1 Flash — multimodal (text+image), default",
+    },
+    "riverflow": {
+        "id": "sourceful/riverflow-v2-fast",
+        "modalities": ["image"],
+        "description": "Sourceful Riverflow v2 Fast — image-only, low latency",
+    },
+    "flux2": {
+        "id": "black-forest-labs/flux.2-klein-4b",
+        "modalities": ["image"],
+        "description": "Black Forest Labs FLUX.2 Klein 4B — image-only, fast",
+    },
+    "seedream": {
+        "id": "bytedance-seed/seedream-4.5",
+        "modalities": ["image"],
+        "description": "ByteDance SeedDream 4.5 — image-only, high quality",
+    },
+    "gpt5": {
+        "id": "openai/gpt-5-image-mini",
+        "modalities": ["image", "text"],
+        "description": "OpenAI GPT-5 Image Mini — multimodal (text+image)",
+    },
 }
 
 # Environment variable names (prefixed to avoid collisions)
@@ -56,18 +95,61 @@ def mask_key(key: str, visible: int = 4) -> str:
     return f"***{key[-visible:]}"
 
 
+def resolve_model(model_arg: str | None, provider: str) -> tuple[str, list[str]]:
+    """Resolve a model keyword or full ID to (model_id, modalities).
+
+    Supports three modes:
+    1. No --model flag: returns the default model for the provider (gemini).
+    2. Keyword match (e.g. 'riverflow'): looks up MODEL_REGISTRY.
+    3. Full model ID (e.g. 'sourceful/riverflow-v2-fast'): reverse-lookups
+       registry for modalities, or defaults to ["image", "text"] if unknown.
+
+    Args:
+        model_arg: The --model CLI value (keyword, full model ID, or None).
+        provider: Either 'openrouter' or 'google'.
+
+    Returns:
+        Tuple of (model_id, modalities_list) where model_id is the full
+        OpenRouter model identifier and modalities_list is the correct
+        modalities array for the API request.
+    """
+    if model_arg is None:
+        model_id = DEFAULT_MODELS[provider]
+        if provider == "openrouter":
+            entry = MODEL_REGISTRY.get("gemini", {})
+            return model_id, entry.get("modalities", ["image", "text"])
+        return model_id, ["image", "text"]
+
+    # Check keyword match (case-insensitive)
+    keyword = model_arg.lower().strip()
+    if keyword in MODEL_REGISTRY:
+        entry = MODEL_REGISTRY[keyword]
+        log.info(f"Resolved keyword '{keyword}' -> {entry['id']}")
+        return entry["id"], entry["modalities"]
+
+    # Full model ID — try reverse lookup in registry for modalities
+    for _kw, entry in MODEL_REGISTRY.items():
+        if entry["id"] == model_arg:
+            log.info(f"Matched full model ID to registry entry '{_kw}'")
+            return model_arg, entry["modalities"]
+
+    # Unknown full model ID — default to multimodal (safest)
+    log.info(f"Unknown model ID '{model_arg}', defaulting to multimodal modalities")
+    return model_arg, ["image", "text"]
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments.
 
     Returns:
         Namespace with output, prompt, prompt_file, provider, aspect_ratio,
-        image_size, model, debug, and verbose attributes.
+        image_size, model, list_models, debug, and verbose attributes.
     """
     parser = argparse.ArgumentParser(
-        description="Generate PNG images using AI (Gemini via OpenRouter/Google AI Studio)"
+        description="Generate PNG images using AI (multiple models via OpenRouter/Google AI Studio)"
     )
     parser.add_argument(
-        "--output", required=True, help="Output PNG file path"
+        "--output", required=False, default=None, help="Output PNG file path (required unless --list-models)"
     )
     parser.add_argument(
         "--prompt", default=None, help="Inline prompt text (alternative to --prompt-file)"
@@ -96,7 +178,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model",
         default=None,
-        help="Model ID (default: auto per provider)",
+        help="Model keyword (gemini, riverflow, flux2, seedream, gpt5) or full model ID",
+    )
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="List available model keywords and exit",
     )
     parser.add_argument(
         "--debug",
@@ -318,6 +405,7 @@ def build_request_body(
     prompt: str,
     aspect_ratio: str | None = None,
     image_size: str | None = None,
+    modalities: list[str] | None = None,
 ) -> dict[str, Any]:
     """Build JSON request body for the given provider.
 
@@ -327,6 +415,9 @@ def build_request_body(
         prompt: The image generation prompt text.
         aspect_ratio: Optional aspect ratio (OpenRouter only), e.g. '16:9'.
         image_size: Optional image size (OpenRouter only), e.g. '2K'.
+        modalities: Output modalities list, e.g. ['image'] for image-only models
+            or ['image', 'text'] for multimodal models. Defaults to ['image', 'text']
+            if not specified. Only used for OpenRouter provider.
 
     Returns:
         Dict suitable for JSON serialization as request body.
@@ -335,7 +426,7 @@ def build_request_body(
         body = {
             "model": model,
             "messages": [{"role": "user", "content": prompt}],
-            "modalities": ["image", "text"],
+            "modalities": modalities or ["image", "text"],
         }
         image_config = {}
         if aspect_ratio:
@@ -363,7 +454,7 @@ def make_request(
     url: str,
     headers: dict[str, str],
     body: dict[str, Any],
-    timeout: int = 120,
+    timeout: int = 300,
 ) -> dict[str, Any]:
     """Make HTTP POST request and return parsed JSON response.
 
@@ -547,6 +638,21 @@ def main() -> None:
     log.debug(f"Args: {vars(args)}")
     log.debug("=" * 60)
 
+    # Handle --list-models
+    if args.list_models:
+        print("Available model keywords:")
+        for kw, info in MODEL_REGISTRY.items():
+            default = " (default)" if info["id"] == DEFAULT_MODELS.get("openrouter") else ""
+            print(f"  {kw:12s} -> {info['id']}{default}")
+            print(f"               {info['description']}")
+            print(f"               modalities: {', '.join(info['modalities'])}")
+        sys.exit(0)
+
+    # Validate --output is provided (required unless --list-models)
+    if not args.output:
+        print("ERROR: --output is required (unless using --list-models)", file=sys.stderr)
+        sys.exit(1)
+
     # Validate output path
     output_path = Path(args.output)
     if output_path.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp"):
@@ -556,13 +662,14 @@ def main() -> None:
             file=sys.stderr,
         )
 
-    # Resolve model
-    model = args.model or DEFAULT_MODELS[args.provider]
+    # Resolve model and modalities
+    model, modalities = resolve_model(args.model, args.provider)
 
     # Resolve prompt
     prompt = resolve_prompt(args)
     print(f"Provider: {args.provider}", file=sys.stderr)
     print(f"Model: {model}", file=sys.stderr)
+    print(f"Modalities: {', '.join(modalities)}", file=sys.stderr)
     print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}", file=sys.stderr)
     if args.aspect_ratio:
         print(f"Aspect ratio: {args.aspect_ratio}", file=sys.stderr)
@@ -581,7 +688,8 @@ def main() -> None:
 
     headers = build_headers(args.provider, mode, config)
     body = build_request_body(
-        args.provider, model, prompt, args.aspect_ratio, args.image_size
+        args.provider, model, prompt, args.aspect_ratio, args.image_size,
+        modalities=modalities,
     )
 
     print(f"URL: {url}", file=sys.stderr)
