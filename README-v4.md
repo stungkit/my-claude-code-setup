@@ -770,6 +770,7 @@ Skills are defined in `.claude/skills/` directories containing:
 | claude-docs-consultant | Fetch official Claude Code documentation | Automatic when working on Claude Code features | `.claude/skills/claude-docs-consultant/` |
 | consult-zai | Dual-AI consultation: z.ai GLM 4.7 vs code-searcher | `/consult-zai "question"` or via Skill tool | `.claude/skills/consult-zai/` |
 | consult-codex | Dual-AI consultation: Codex GPT-5.2 vs code-searcher | `/consult-codex "question"` or via Skill tool | `.claude/skills/consult-codex/` |
+| ai-image-creator | Generate PNG images using AI (Gemini 3.1 Flash) | `/ai-image-creator` or via Skill tool | `.claude/skills/ai-image-creator/` |
 
 #### claude-docs-consultant
 
@@ -804,6 +805,26 @@ Skills are defined in `.claude/skills/` directories containing:
 - Synthesized summary combining best insights from both AI sources
 
 **Usage**: `/consult-codex "your code analysis question"` or invoke via Skill tool.
+
+#### ai-image-creator
+
+**Purpose**: Generate PNG images using AI (Google Gemini 3.1 Flash via OpenRouter or Google AI Studio, proxied through Cloudflare AI Gateway BYOK).
+
+**Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration before use. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md).
+
+**Providers**:
+- OpenRouter (recommended, pay-as-you-go)
+- Google AI Studio (requires billing for image generation)
+- Cloudflare AI Gateway BYOK (secure proxy, stores provider keys server-side)
+
+**Features**:
+- Configurable aspect ratios: 1:1, 16:9, 9:16, 3:2, 2:3, 4:3, 3:4, 4:5, 5:4, 21:9, 1:4, 4:1
+- Image sizes: 0.5K, 1K (default), 2K, 4K
+- Automatic fallback from gateway to direct API
+- Post-processing with ImageMagick, sips (macOS), or ffmpeg
+- Pure Python (no pip dependencies), requires `uv` runner
+
+**Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, or make visual assets.
 
 ---
 

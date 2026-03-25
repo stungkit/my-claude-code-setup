@@ -883,6 +883,19 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
   * Synthesized summary combining best insights from both AI sources
 * **Usage**: `/consult-codex "your code analysis question"` or invoke via Skill tool
 
+### ai-image-creator
+
+* **Purpose**: Generate PNG images using AI (Google Gemini 3.1 Flash via OpenRouter or Google AI Studio, proxied through Cloudflare AI Gateway BYOK)
+* **Location**: `.claude/skills/ai-image-creator/`
+* **Key Features**:
+  * Supports configurable aspect ratios (1:1, 16:9, 9:16, 3:2, 4:3, etc.) and image sizes (0.5K to 4K)
+  * Multiple providers: OpenRouter (recommended), Google AI Studio, Cloudflare AI Gateway BYOK
+  * Automatic fallback from gateway to direct API
+  * Post-processing support with ImageMagick, sips (macOS), or ffmpeg
+  * Pure Python script with no pip dependencies (requires `uv` runner)
+* **Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md) for detailed instructions
+* **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, or make visual assets
+
 ## Claude Code Hooks
 
 The Claude Code hook is for `STOP` which uses Terminal-Notifier to show macOS desktop notifications whenever Claude Code stops and finishes it's response https://github.com/centminmod/terminal-notifier-setup.
