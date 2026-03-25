@@ -775,7 +775,7 @@ Skills provide specialized capabilities. See [Agent Skills documentation](https:
 | **claude-docs-consultant** | Selectively fetches official Claude Code documentation from docs.claude.com | Automatic when working on Claude Code features |
 | **consult-zai** | Dual-AI consultation comparing z.ai GLM 4.7 and code-searcher | `/consult-zai "question"` or via Skill tool |
 | **consult-codex** | Dual-AI consultation comparing Codex GPT-5.2 and code-searcher | `/consult-codex "question"` or via Skill tool |
-| **ai-image-creator** | Generate PNG images using AI (Gemini 3.1 Flash via OpenRouter/Google/Cloudflare AI Gateway). Requires [setup](.claude/skills/ai-image-creator/references/setup-guide.md) | `/ai-image-creator` or via Skill tool |
+| **ai-image-creator** | Generate PNG images using AI (multiple models including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 via OpenRouter/Cloudflare AI Gateway). Requires [setup](.claude/skills/ai-image-creator/references/setup-guide.md) | `/ai-image-creator` or via Skill tool |
 
 ### 5.3 Custom Slash Commands
 

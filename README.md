@@ -885,9 +885,10 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
 
 ### ai-image-creator
 
-* **Purpose**: Generate PNG images using AI (Google Gemini 3.1 Flash via OpenRouter or Google AI Studio, proxied through Cloudflare AI Gateway BYOK)
+* **Purpose**: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK)
 * **Location**: `.claude/skills/ai-image-creator/`
 * **Key Features**:
+  * Model selection via keywords: gemini (default), riverflow, flux2, seedream, gpt5
   * Supports configurable aspect ratios (1:1, 16:9, 9:16, 3:2, 4:3, etc.) and image sizes (0.5K to 4K)
   * Multiple providers: OpenRouter (recommended), Google AI Studio, Cloudflare AI Gateway BYOK
   * Automatic fallback from gateway to direct API
