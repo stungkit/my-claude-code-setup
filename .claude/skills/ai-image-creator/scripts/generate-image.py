@@ -48,14 +48,14 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "description": "Google Gemini 3.1 Flash — multimodal (text+image), default",
     },
     "riverflow": {
-        "id": "sourceful/riverflow-v2-fast",
+        "id": "sourceful/riverflow-v2-pro",
         "modalities": ["image"],
-        "description": "Sourceful Riverflow v2 Fast — image-only, low latency",
+        "description": "Sourceful Riverflow v2 Pro — image-only, high quality",
     },
     "flux2": {
-        "id": "black-forest-labs/flux.2-klein-4b",
+        "id": "black-forest-labs/flux.2-max",
         "modalities": ["image"],
-        "description": "Black Forest Labs FLUX.2 Klein 4B — image-only, fast",
+        "description": "Black Forest Labs FLUX.2 Max — image-only, high quality",
     },
     "seedream": {
         "id": "bytedance-seed/seedream-4.5",
@@ -63,9 +63,9 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "description": "ByteDance SeedDream 4.5 — image-only, high quality",
     },
     "gpt5": {
-        "id": "openai/gpt-5-image-mini",
+        "id": "openai/gpt-5-image",
         "modalities": ["image", "text"],
-        "description": "OpenAI GPT-5 Image Mini — multimodal (text+image)",
+        "description": "OpenAI GPT-5 Image — multimodal (text+image)",
     },
 }
 
@@ -101,7 +101,7 @@ def resolve_model(model_arg: str | None, provider: str) -> tuple[str, list[str]]
     Supports three modes:
     1. No --model flag: returns the default model for the provider (gemini).
     2. Keyword match (e.g. 'riverflow'): looks up MODEL_REGISTRY.
-    3. Full model ID (e.g. 'sourceful/riverflow-v2-fast'): reverse-lookups
+    3. Full model ID (e.g. 'sourceful/riverflow-v2-pro'): reverse-lookups
        registry for modalities, or defaults to ["image", "text"] if unknown.
 
     Args:

@@ -18,10 +18,10 @@ When the user mentions a model keyword in their image request, use the correspon
 | Keyword | Model | Use When User Says |
 |---------|-------|--------------------|
 | `gemini` | [Google Gemini 3.1 Flash](https://openrouter.ai/google/gemini-3.1-flash-image-preview) (default) | "gemini", "generate an image" (no model specified) |
-| `riverflow` | [Sourceful Riverflow v2 Fast](https://openrouter.ai/sourceful/riverflow-v2-fast) | "riverflow", "use riverflow" |
-| `flux2` | [FLUX.2 Klein 4B](https://openrouter.ai/black-forest-labs/flux.2-klein-4b) | "flux2", "flux", "use flux" |
+| `riverflow` | [Sourceful Riverflow v2 Pro](https://openrouter.ai/sourceful/riverflow-v2-pro) | "riverflow", "use riverflow" |
+| `flux2` | [FLUX.2 Max](https://openrouter.ai/black-forest-labs/flux.2-max) | "flux2", "flux", "use flux" |
 | `seedream` | [ByteDance SeedDream 4.5](https://openrouter.ai/bytedance-seed/seedream-4.5) | "seedream", "use seedream" |
-| `gpt5` | [OpenAI GPT-5 Image Mini](https://openrouter.ai/openai/gpt-5-image-mini) | "gpt5", "gpt5 image", "use gpt5" |
+| `gpt5` | [OpenAI GPT-5 Image](https://openrouter.ai/openai/gpt-5-image) | "gpt5", "gpt5 image", "use gpt5" |
 
 ## Instructions
 
