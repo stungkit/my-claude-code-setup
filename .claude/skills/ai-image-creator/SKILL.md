@@ -43,6 +43,42 @@ For short prompts (under 200 chars, no special characters), pass inline via `--p
 - For icons, mention the target size (e.g., "512x512", "favicon at 32x32").
 - For photos, describe lighting, camera angle, and mood.
 
+### Step 1.5: Prompt Enhancement (Optional — Progressive Disclosure)
+
+Professional prompt patterns are available in 3 reference files. These are **not loaded by default** — only read them when the user's request matches a category or they explicitly ask for enhancement.
+
+**Category Detection** — Match the user's request to a category:
+
+| If request mentions... | Category | Also read |
+|----------------------|----------|-----------|
+| "product shot", "product photo", "hero image" | `product_hero` | `prompt-core.md` + `prompt-categories.md` § product_hero |
+| "lifestyle", "in-use", "in context" | `lifestyle` | `prompt-core.md` + `prompt-categories.md` § lifestyle |
+| "instagram", "social media", "tiktok", "pinterest" | `social_media` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § social_media |
+| "banner", "ad", "email header" | `marketing_banner` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § marketing_banner |
+| "website", "app", "logo", "ad format", "leaderboard", "skyscraper" | `web_app` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § web_app |
+| "icon", "favicon", "app icon" | `icon_logo` | `prompt-core.md` + `prompt-categories.md` § icon_logo |
+| "mascot", "character", "illustration", "artwork" | `illustration` | `prompt-core.md` + `prompt-categories.md` § illustration |
+| "food", "drink", "recipe", "restaurant" | `food_drink` | `prompt-core.md` + `prompt-categories.md` § food_drink |
+| "building", "interior", "room", "architecture" | `architecture` | `prompt-core.md` + `prompt-categories.md` § architecture |
+| "chart", "infographic", "data", "diagram" | `infographic` | `prompt-core.md` + `prompt-categories.md` § infographic |
+| "t-shirt", "mug design", "poster", "POD", "print-on-demand" | `pod_design` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § pod_design |
+| No match / simple request | — | Skip patterns, generate directly |
+
+**When to skip enhancement:**
+- User's prompt is already detailed (150+ words with camera/lighting/composition specifics)
+- Simple/direct requests ("generate a blue circle on white background")
+- User says "no pattern" or provides a fully formed prompt
+
+**When to apply:**
+- User says "use product_hero pattern" or "apply social_media pattern" (explicit)
+- Request clearly matches a category above (auto-detect)
+- User asks for "enhanced prompt" or "professional quality"
+
+**Reference files** (in `references/` directory):
+- `prompt-core.md` — Foundational rules: narrative prompting, camera/lens/lighting specs, text rendering rules, model recommendations
+- `prompt-platforms.md` — Social media ratios, IAB ad sizes, web dimensions, POD specs — all mapped to `-a`/`-s` flags
+- `prompt-categories.md` — 11 category formulas with templates and complete example prompts
+
 ### Step 2: Run Generation Script
 
 ```bash

@@ -1123,6 +1123,27 @@ def main() -> None:
 
     total_elapsed = time.time() - total_start
 
+    # Save prompt alongside image as .prompt.md
+    prompt_path = output_path.with_suffix(".prompt.md")
+    try:
+        prompt_meta = f"# Prompt\n\n"
+        prompt_meta += f"- **Model:** {model}\n"
+        prompt_meta += f"- **Provider:** {args.provider} ({mode})\n"
+        if args.aspect_ratio:
+            prompt_meta += f"- **Aspect ratio:** {args.aspect_ratio}\n"
+        if args.image_size:
+            prompt_meta += f"- **Image size:** {args.image_size}\n"
+        if args.transparent:
+            prompt_meta += f"- **Transparent:** yes\n"
+        if ref_images:
+            prompt_meta += f"- **Reference images:** {', '.join(ref_images)}\n"
+        prompt_meta += f"- **Elapsed:** {total_elapsed:.1f}s\n"
+        prompt_meta += f"\n## Prompt Text\n\n{prompt}\n"
+        prompt_path.write_text(prompt_meta, encoding="utf-8")
+        log.info(f"Prompt saved: {prompt_path}")
+    except OSError as e:
+        log.warning(f"Could not save prompt file: {e}")
+
     # Report success
     size_kb = len(image_bytes) / 1024
     print(f"\nImage saved: {output_path} ({size_kb:.1f} KB)", file=sys.stderr)
