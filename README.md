@@ -892,6 +892,11 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
   * Supports configurable aspect ratios (1:1, 16:9, 9:16, 3:2, 4:3, etc.) and image sizes (0.5K to 4K)
   * Multiple providers: OpenRouter (recommended), Google AI Studio, Cloudflare AI Gateway BYOK
   * Automatic fallback from gateway to direct API
+  * Transparent background generation (`-t`) with green-screen chroma key pipeline
+  * Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
+  * Per-project cost tracking (`--costs`) with per-model breakdown
+  * Prompt enhancement with 11 category-specific professional patterns (product hero, social media, marketing banners, etc.)
+  * Composite banners for multi-size logo banners via ImageMagick — no API calls needed
   * Post-processing support with ImageMagick, sips (macOS), or ffmpeg
   * Pure Python script with no pip dependencies (requires `uv` runner)
 * **Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md) for detailed instructions

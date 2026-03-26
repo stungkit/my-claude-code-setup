@@ -54,8 +54,9 @@ Professional prompt patterns are available in 3 reference files. These are **not
 | "product shot", "product photo", "hero image" | `product_hero` | `prompt-core.md` + `prompt-categories.md` § product_hero |
 | "lifestyle", "in-use", "in context" | `lifestyle` | `prompt-core.md` + `prompt-categories.md` § lifestyle |
 | "instagram", "social media", "tiktok", "pinterest" | `social_media` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § social_media |
-| "banner", "ad", "email header" | `marketing_banner` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § marketing_banner |
-| "website", "app", "logo", "ad format", "leaderboard", "skyscraper" | `web_app` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § web_app |
+| "banner", "ad", "email header" | `marketing_banner` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § marketing_banner. **Routing hint:** If user has an existing logo and wants multiple standard sizes → use composite mode instead (see `## Composite Banners`). |
+| "website", "app", "logo", "ad format", "leaderboard", "skyscraper" | `web_app` | `prompt-core.md` + `prompt-platforms.md` + `prompt-categories.md` § web_app. **Routing hint:** For "logo banners" or "OG images with my logo" where user has existing logo → use `composite-banners.py`. For "design me a new logo" → use `generate-image.py`. |
+| "brand kit", "logo banners", "banner sizes", "IAB sizes", "consistent banners" + user has existing logo | `composite` | Read `references/composite-reference.md`, use `composite-banners.py` |
 | "icon", "favicon", "app icon" | `icon_logo` | `prompt-core.md` + `prompt-categories.md` § icon_logo |
 | "mascot", "character", "illustration", "artwork" | `illustration` | `prompt-core.md` + `prompt-categories.md` § illustration |
 | "food", "drink", "recipe", "restaurant" | `food_drink` | `prompt-core.md` + `prompt-categories.md` § food_drink |
@@ -215,6 +216,69 @@ uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py --costs
 Shows per-model breakdown: generation count, total tokens, elapsed time, and recent entries. **Security:** Only non-sensitive data is logged (model, tokens, timing, file path). No API keys or credentials are ever stored.
 
 Consider adding `.ai-image-creator/` to your `.gitignore`.
+
+## Composite Banners
+
+Generate consistent logo banners across multiple sizes from a JSON config. Uses ImageMagick for offline compositing — no API calls, no network required. Composites an existing logo/mark onto branded backgrounds with text at standard dimensions.
+
+### Composite vs. AI Generation — Decision Rule
+
+Use **composite-banners.py** when ALL of these are true:
+- User has an existing logo/mark they want to use as-is (provides or references a logo file)
+- User wants consistent branding across multiple standard sizes (not one creative image)
+- The output is logo + text on a solid/gradient background (not a photograph, illustration, or creative design)
+
+Use **generate-image.py** (AI generation) when ANY of these are true:
+- User wants a creative/artistic banner design (describes a scene, mood, concept, or style)
+- User wants AI to design the visual content (product shots, illustrations, creative layouts)
+- User wants a single banner with artistic content, not a multi-size brand kit
+
+**When composite mode applies**, read `references/composite-reference.md` for full config schema, preset dimensions, and font handling details.
+
+### Quick Start
+
+1. **Init config:** `uv run python ${CLAUDE_SKILL_DIR}/scripts/composite-banners.py --init`
+2. **Edit** `banner-config.json` — set logo path, brand text, colors, banner sizes
+3. **Validate:** `uv run python ${CLAUDE_SKILL_DIR}/scripts/composite-banners.py --validate`
+4. **Generate:** `uv run python ${CLAUDE_SKILL_DIR}/scripts/composite-banners.py -c banner-config.json -o ./banners/`
+
+### Composite Parameters
+
+| Argument | Short | Default | Description |
+|----------|-------|---------|-------------|
+| `--config` | `-c` | `banner-config.json` | Config JSON path |
+| `--output-dir` | `-o` | `.` | Output directory |
+| `--name` | `-n` | all | Generate single banner by name |
+| `--format` | `-f` | `png` | `png`, `webp`, `jpeg` |
+| `--list-presets` | | | List IAB/social/web size presets |
+| `--init` | | | Generate starter config |
+| `--validate` | | | Check config, exit 0 or 2 |
+| `--dry-run` | | | Preview without rendering |
+| `--json` | | | Structured JSON to stdout |
+| `--verbose` | `-v` | | Verbose output |
+
+**Requirements:** ImageMagick 7 (`brew install imagemagick` or `apt install imagemagick`).
+
+### Workflow Hints
+
+**Starting composite mode:**
+- Ask user for: logo file path, brand name, tagline text, brand colors (hex)
+- If user doesn't have a logo yet → use generate-image.py to create one first
+- Run `--init` to scaffold config, then help user fill in their brand values
+
+**During generation:**
+- Always run `--validate` before generating to catch font/logo issues early
+- Use `--name` to iterate on one banner before generating the full set
+- Show user 3-4 representative sizes (hero, OG, square, leaderboard) for approval
+
+**After generation:**
+- If user wants creative/artistic redesign of banner visuals → switch to generate-image.py (composite only does logo + text on gradient/solid backgrounds)
+- If banners look too plain → suggest AI-generating a textured or photographic background first, then compositing the logo onto it
+
+**Combined workflow (most powerful):**
+1. Use generate-image.py to AI-create a hero background or textured pattern
+2. Use composite-banners.py to overlay the logo + text onto that background at all standard sizes
+This gives both creative AI visuals AND pixel-perfect logo consistency.
 
 ## Image Tools
 
