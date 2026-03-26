@@ -9,6 +9,13 @@ Step-by-step instructions to configure all required services for the ai-image-cr
 - A Cloudflare account (free tier works)
 - An OpenRouter account and/or Google AI Studio account
 
+### Optional (for transparent mode `-t`)
+
+- **FFmpeg 4.3+**: `brew install ffmpeg` (macOS) / `apt install ffmpeg` (Linux)
+- **ImageMagick 7+**: `brew install imagemagick` (macOS) / `apt install imagemagick` (Linux)
+
+These are only needed if you use the `-t` flag for transparent background generation.
+
 ---
 
 ## 1. Get an OpenRouter API Key

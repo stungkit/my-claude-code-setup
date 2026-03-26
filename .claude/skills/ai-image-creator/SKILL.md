@@ -1,6 +1,6 @@
 ---
 name: ai-image-creator
-description: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK). Use when user asks to "generate an image", "create a PNG", "make an icon", or needs AI-generated visual assets for the project. Supports model selection via keywords (gemini, riverflow, flux2, seedream, gpt5), configurable aspect ratios and resolutions.
+description: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK). Use when user asks to "generate an image", "create a PNG", "make an icon", "make it transparent", or needs AI-generated visual assets for the project. Supports model selection via keywords (gemini, riverflow, flux2, seedream, gpt5), configurable aspect ratios/resolutions, transparent backgrounds (-t), reference image editing (-r), and per-project cost tracking (--costs).
 allowed-tools: Bash, Read, Write
 compatibility: Requires uv (Python runner) and network access. Environment variables for CF AI Gateway or direct API keys must be configured in shell profile (~/.zshrc on macOS, ~/.bashrc on Linux, or System Environment Variables on Windows).
 metadata:
@@ -47,26 +47,44 @@ For short prompts (under 200 chars, no special characters), pass inline via `--p
 
 ```bash
 uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
-  --output "OUTPUT_PATH" \
+  -o "OUTPUT_PATH" \
   [--provider openrouter|google] \
-  [--aspect-ratio "16:9"] \
-  [--image-size "2K"] \
-  [--model "model-id"]
+  [-a "16:9"] \
+  [-s "2K"] \
+  [-m "model-id"] \
+  [-r "ref-image.png"] \
+  [-t]
 ```
 
 With a specific model:
 ```bash
 uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
-  --output "OUTPUT_PATH" \
-  --model riverflow \
-  --prompt "A serene mountain lake at sunset"
+  -o "OUTPUT_PATH" \
+  -m riverflow \
+  -p "A serene mountain lake at sunset"
+```
+
+With transparent background (requires ffmpeg + imagemagick):
+```bash
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  -o "mascot.png" \
+  -t \
+  -p "A friendly robot mascot character"
+```
+
+With reference image for editing/style transfer (multimodal models only):
+```bash
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  -o "edited.png" \
+  -r "original.png" \
+  -p "Change the background to a sunset scene"
 ```
 
 Or with inline prompt (default model):
 ```bash
 uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
-  --output "OUTPUT_PATH" \
-  --prompt "A simple blue circle on white background"
+  -o "OUTPUT_PATH" \
+  -p "A simple blue circle on white background"
 ```
 
 ### Step 3: Clean Up (if temp file used)
@@ -89,16 +107,19 @@ If the user needs resizing, format conversion, or other manipulation, first dete
 
 ## Parameters
 
-| Argument | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `--output` | Yes | -- | Output file path (parent dirs auto-created) |
-| `--prompt` | No | -- | Inline prompt text |
-| `--prompt-file` | No | `../tmp/prompt.txt` | Path to prompt file |
-| `--provider` | No | `openrouter` | `openrouter` or `google` |
-| `--aspect-ratio` | No | model default | OpenRouter only: `1:1`, `16:9`, `9:16`, `3:2`, `2:3`, `4:3`, `3:4`, `4:5`, `5:4`, `21:9` |
-| `--image-size` | No | model default | OpenRouter only: `0.5K`, `1K`, `2K`, `4K` |
-| `--model` | No | `gemini` | Model keyword (`gemini`, `riverflow`, `flux2`, `seedream`, `gpt5`) or full OpenRouter model ID |
-| `--list-models` | No | -- | List available model keywords and exit |
+| Argument | Short | Required | Default | Description |
+|----------|-------|----------|---------|-------------|
+| `--output` | `-o` | Yes | -- | Output file path (parent dirs auto-created) |
+| `--prompt` | `-p` | No | -- | Inline prompt text |
+| `--prompt-file` | -- | No | `../tmp/prompt.txt` | Path to prompt file |
+| `--provider` | -- | No | `openrouter` | `openrouter` or `google` |
+| `--aspect-ratio` | `-a` | No | model default | OpenRouter only: `1:1`, `16:9`, `9:16`, `3:2`, `2:3`, `4:3`, `3:4`, `4:5`, `5:4`, `21:9` |
+| `--image-size` | `-s` | No | model default | OpenRouter only: `0.5K`, `1K`, `2K`, `4K` |
+| `--model` | `-m` | No | `gemini` | Model keyword (`gemini`, `riverflow`, `flux2`, `seedream`, `gpt5`) or full model ID |
+| `--ref` | `-r` | No | -- | Reference image file (repeatable). For editing/style transfer. Multimodal models only (gemini, gpt5) |
+| `--transparent` | `-t` | No | -- | Generate with transparent background. Requires ffmpeg + imagemagick |
+| `--costs` | -- | No | -- | Display generation/cost history for this project and exit |
+| `--list-models` | -- | No | -- | List available model keywords and exit |
 
 ## Environment Variables
 
@@ -113,6 +134,51 @@ If the user needs resizing, format conversion, or other manipulation, first dete
 Gateway mode activates when all 3 `CF_*` vars are set. Falls back to direct mode if gateway fails.
 
 For first-time setup, see `references/setup-guide.md`.
+
+## Transparent Mode (`-t`)
+
+Generates images with transparent backgrounds using a 3-step pipeline:
+
+1. **Green screen generation** — Prompt is augmented to place subject on solid #00FF00 green
+2. **FFmpeg chroma key** — Removes green background + green fringe from edges
+3. **ImageMagick auto-crop** — Trims transparent padding
+
+**Requirements:** `brew install ffmpeg imagemagick`
+
+**Use cases:** Game sprites, icons, logos, mascots, marketing assets with transparency.
+
+```bash
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  -o "sprite.png" -t -p "A pixel art treasure chest"
+```
+
+## Reference Images (`-r`)
+
+Send existing images alongside text prompts for editing, style transfer, or guided generation. Supports multiple references. **Multimodal models only** (gemini, gpt5) — image-only models (riverflow, flux2, seedream) will error.
+
+```bash
+# Edit an existing image
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  -o "edited.png" -r "photo.png" -p "Make the background white"
+
+# Style transfer with multiple references
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py \
+  -o "combined.png" -r "style1.png" -r "content.png" -p "Apply the style of the first image to the second"
+```
+
+Supported formats: PNG, JPEG, WebP, GIF.
+
+## Cost Tracking (`--costs`)
+
+Every generation is logged to `.ai-image-creator/costs.json` in your project directory. View history:
+
+```bash
+uv run python ${CLAUDE_SKILL_DIR}/scripts/generate-image.py --costs
+```
+
+Shows per-model breakdown: generation count, total tokens, elapsed time, and recent entries. **Security:** Only non-sensitive data is logged (model, tokens, timing, file path). No API keys or credentials are ever stored.
+
+Consider adding `.ai-image-creator/` to your `.gitignore`.
 
 ## Image Tools
 

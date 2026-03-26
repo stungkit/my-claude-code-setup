@@ -14,6 +14,65 @@ All models use the same OpenRouter `/v1/chat/completions` endpoint and response 
 
 **Important:** Image-only models MUST use `"modalities": ["image"]`. Using `["image", "text"]` may cause errors with these models. The script handles this automatically when using keywords.
 
+**Reference image support:** Only multimodal models (gemini, gpt5) support image input for editing and style transfer. Image-only models (riverflow, flux2, seedream) do not accept reference images.
+
+---
+
+## Reference Images (Multimodal Input)
+
+### OpenRouter Format
+
+When sending reference images via OpenRouter, change `messages[0].content` from a string to an array of content parts:
+
+```json
+{
+  "model": "google/gemini-3.1-flash-image-preview",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {"type": "text", "text": "Change the background to a sunset scene"},
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "data:image/png;base64,iVBORw0KGgo..."
+          }
+        }
+      ]
+    }
+  ],
+  "modalities": ["image", "text"]
+}
+```
+
+Multiple images: add additional `image_url` entries to the content array. Text should come first.
+
+### Google AI Studio Format
+
+Add `inline_data` parts alongside the text part:
+
+```json
+{
+  "contents": [
+    {
+      "parts": [
+        {"text": "Change the background to a sunset scene"},
+        {
+          "inline_data": {
+            "mime_type": "image/png",
+            "data": "iVBORw0KGgo..."
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Supported Input Formats
+
+PNG, JPEG, WebP, GIF. Images are base64-encoded inline (data URLs for OpenRouter, inline_data for Google).
+
 ---
 
 ## Providers & Endpoints

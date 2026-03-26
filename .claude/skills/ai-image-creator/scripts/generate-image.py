@@ -25,10 +25,14 @@ import base64
 import json
 import logging
 import os
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any  # noqa: F401 — used in type hints below
 
@@ -78,6 +82,28 @@ ENV_GEMINI_KEY = "AI_IMG_CREATOR_GEMINI_KEY"
 
 # Logger — configured in main() based on --debug / --verbose flags
 log = logging.getLogger("ai-image-creator")
+
+
+MIME_MAP = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+}
+
+
+def guess_mime(path: str) -> str:
+    """Guess MIME type from file extension.
+
+    Args:
+        path: File path string.
+
+    Returns:
+        MIME type string, defaults to 'image/png' for unknown extensions.
+    """
+    ext = Path(path).suffix.lower()
+    return MIME_MAP.get(ext, "image/png")
 
 
 def mask_key(key: str, visible: int = 4) -> str:
@@ -149,10 +175,10 @@ def parse_args() -> argparse.Namespace:
         description="Generate PNG images using AI (multiple models via OpenRouter/Google AI Studio)"
     )
     parser.add_argument(
-        "--output", required=False, default=None, help="Output PNG file path (required unless --list-models)"
+        "-o", "--output", required=False, default=None, help="Output PNG file path (required unless --list-models)"
     )
     parser.add_argument(
-        "--prompt", default=None, help="Inline prompt text (alternative to --prompt-file)"
+        "-p", "--prompt", default=None, help="Inline prompt text (alternative to --prompt-file)"
     )
     parser.add_argument(
         "--prompt-file",
@@ -166,19 +192,35 @@ def parse_args() -> argparse.Namespace:
         help="API provider (default: openrouter)",
     )
     parser.add_argument(
-        "--aspect-ratio",
+        "-a", "--aspect-ratio",
         default=None,
         help="Aspect ratio for image (OpenRouter only): 1:1, 16:9, 9:16, 3:2, 2:3, etc.",
     )
     parser.add_argument(
-        "--image-size",
+        "-s", "--image-size",
         default=None,
         help="Image resolution (OpenRouter only): 0.5K, 1K, 2K, 4K",
     )
     parser.add_argument(
-        "--model",
+        "-m", "--model",
         default=None,
         help="Model keyword (gemini, riverflow, flux2, seedream, gpt5) or full model ID",
+    )
+    parser.add_argument(
+        "-r", "--ref",
+        action="append",
+        default=None,
+        help="Reference image file(s) for editing/style transfer (repeatable, multimodal models only)",
+    )
+    parser.add_argument(
+        "-t", "--transparent",
+        action="store_true",
+        help="Generate with transparent background (requires ffmpeg + imagemagick)",
+    )
+    parser.add_argument(
+        "--costs",
+        action="store_true",
+        help="Display cost/generation history for this project and exit",
     )
     parser.add_argument(
         "--list-models",
@@ -406,6 +448,7 @@ def build_request_body(
     aspect_ratio: str | None = None,
     image_size: str | None = None,
     modalities: list[str] | None = None,
+    ref_images: list[str] | None = None,
 ) -> dict[str, Any]:
     """Build JSON request body for the given provider.
 
@@ -418,17 +461,38 @@ def build_request_body(
         modalities: Output modalities list, e.g. ['image'] for image-only models
             or ['image', 'text'] for multimodal models. Defaults to ['image', 'text']
             if not specified. Only used for OpenRouter provider.
+        ref_images: Optional list of file paths to reference images for
+            editing/style transfer. Only supported by multimodal models.
 
     Returns:
         Dict suitable for JSON serialization as request body.
     """
+    refs = ref_images or []
+
     if provider == "openrouter":
-        body = {
-            "model": model,
-            "messages": [{"role": "user", "content": prompt}],
-            "modalities": modalities or ["image", "text"],
-        }
-        image_config = {}
+        if refs:
+            # Multimodal content array: text + image_url parts
+            content_parts: list[dict[str, Any]] = [{"type": "text", "text": prompt}]
+            for ref_path in refs:
+                b64 = base64.b64encode(Path(ref_path).read_bytes()).decode()
+                mime = guess_mime(ref_path)
+                content_parts.append({
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{b64}"},
+                })
+                log.info(f"Reference image: {ref_path} ({mime}, {len(b64)} base64 chars)")
+            body: dict[str, Any] = {
+                "model": model,
+                "messages": [{"role": "user", "content": content_parts}],
+                "modalities": modalities or ["image", "text"],
+            }
+        else:
+            body = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "modalities": modalities or ["image", "text"],
+            }
+        image_config: dict[str, str] = {}
         if aspect_ratio:
             image_config["aspect_ratio"] = aspect_ratio
         if image_size:
@@ -437,10 +501,17 @@ def build_request_body(
             body["image_config"] = image_config
             log.debug(f"Image config: {json.dumps(image_config)}")
     else:
-        body = {"contents": [{"parts": [{"text": prompt}]}]}
+        # Google AI Studio
+        parts: list[dict[str, Any]] = [{"text": prompt}]
+        for ref_path in refs:
+            b64 = base64.b64encode(Path(ref_path).read_bytes()).decode()
+            mime = guess_mime(ref_path)
+            parts.append({"inline_data": {"mime_type": mime, "data": b64}})
+            log.info(f"Reference image: {ref_path} ({mime}, {len(b64)} base64 chars)")
+        body = {"contents": [{"parts": parts}]}
 
     log.debug(f"Request body size: {len(json.dumps(body))} bytes")
-    # Log body without the full prompt (can be very long)
+    # Log body without the full prompt or base64 data (can be very long)
     body_preview = json.dumps(body)
     if len(body_preview) > 500:
         log.debug(f"Request body (truncated): {body_preview[:500]}...")
@@ -623,6 +694,260 @@ def extract_image_google(response: dict) -> tuple[bytes, str]:
     return image_bytes, text_content
 
 
+def find_imagemagick() -> str | None:
+    """Find ImageMagick binary (magick for v7, convert for v6).
+
+    Returns:
+        Path to binary, or None if not found.
+    """
+    for cmd in ("magick", "convert"):
+        path = shutil.which(cmd)
+        if path:
+            log.debug(f"Found ImageMagick: {cmd} at {path}")
+            return cmd
+    return None
+
+
+def check_ffmpeg_despill() -> bool:
+    """Check if FFmpeg supports the despill filter (requires 4.3+).
+
+    Returns:
+        True if despill is available, False otherwise.
+    """
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-filters"],
+            capture_output=True, text=True, timeout=10,
+        )
+        return "despill" in result.stdout
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
+
+
+def process_transparent(input_path: Path, output_path: Path) -> None:
+    """Remove green screen background and trim transparent padding.
+
+    3-step pipeline:
+    1. FFmpeg chroma key — removes green background pixels
+    2. FFmpeg despill — removes green fringe from edges (if available)
+    3. ImageMagick trim — crops transparent padding
+
+    Args:
+        input_path: Path to the raw generated image (with green background).
+        output_path: Final output path for the transparent image.
+
+    Raises:
+        RuntimeError: If required tools are missing or processing fails.
+    """
+    # Check tool availability
+    ffmpeg_path = shutil.which("ffmpeg")
+    if not ffmpeg_path:
+        raise RuntimeError(
+            "Transparent mode requires FFmpeg. Install with: brew install ffmpeg"
+        )
+
+    magick_cmd = find_imagemagick()
+    if not magick_cmd:
+        raise RuntimeError(
+            "Transparent mode requires ImageMagick. Install with: brew install imagemagick"
+        )
+
+    has_despill = check_ffmpeg_despill()
+
+    # Step 1+2: FFmpeg chroma key (+ despill if available)
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_keyed:
+        tmp_keyed_path = Path(tmp_keyed.name)
+
+    try:
+        if has_despill:
+            vf = "colorkey=0x00FF00:0.3:0.15,despill=green"
+        else:
+            print("WARNING: FFmpeg despill filter not available (requires 4.3+). "
+                  "Green fringe removal skipped.", file=sys.stderr)
+            vf = "colorkey=0x00FF00:0.3:0.15"
+
+        log.info(f"FFmpeg chroma key: {vf}")
+        result = subprocess.run(
+            ["ffmpeg", "-i", str(input_path), "-vf", vf, "-y", str(tmp_keyed_path)],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"FFmpeg chroma key failed: {result.stderr[-500:]}")
+
+        # Step 3: ImageMagick trim transparent padding
+        log.info("ImageMagick trim")
+        trim_args = [magick_cmd]
+        if magick_cmd == "magick":
+            trim_args += [str(tmp_keyed_path), "-fuzz", "15%", "-trim", "+repage", str(output_path)]
+        else:
+            # ImageMagick 6 (convert)
+            trim_args += [str(tmp_keyed_path), "-fuzz", "15%", "-trim", "+repage", str(output_path)]
+
+        result = subprocess.run(trim_args, capture_output=True, text=True, timeout=60)
+        if result.returncode != 0:
+            raise RuntimeError(f"ImageMagick trim failed: {result.stderr[-500:]}")
+
+        print("Transparent background processing complete.", file=sys.stderr)
+
+    finally:
+        # Cleanup temp file
+        tmp_keyed_path.unlink(missing_ok=True)
+
+
+def get_costs_path() -> Path:
+    """Get project-level costs file path.
+
+    Returns:
+        Path to .ai-image-creator/costs.json in current working directory.
+    """
+    return Path.cwd() / ".ai-image-creator" / "costs.json"
+
+
+def log_cost_entry(
+    response: dict[str, Any],
+    provider: str,
+    model: str,
+    mode: str,
+    aspect_ratio: str | None,
+    image_size: str | None,
+    output_file: str,
+    size_bytes: int,
+    elapsed_seconds: float,
+) -> None:
+    """Append a cost entry to the project-level costs file.
+
+    Only stores non-sensitive operational data. Never stores API keys, tokens,
+    account IDs, or any credentials.
+
+    Args:
+        response: Raw API response dict (for extracting token usage).
+        provider: 'openrouter' or 'google'.
+        model: Full model ID.
+        mode: 'gateway' or 'direct'.
+        aspect_ratio: Aspect ratio used, or None.
+        image_size: Image size used, or None.
+        output_file: Output file path string.
+        size_bytes: Size of generated image in bytes.
+        elapsed_seconds: Total generation time.
+    """
+    costs_path = get_costs_path()
+
+    # Extract token usage (provider-specific format)
+    token_usage: dict[str, int] = {}
+    if provider == "openrouter":
+        usage = response.get("usage", {})
+        if usage:
+            token_usage = {
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "completion_tokens": usage.get("completion_tokens", 0),
+                "total_tokens": usage.get("total_tokens", 0),
+            }
+    else:
+        # Google AI Studio format
+        usage = response.get("usageMetadata", {})
+        if usage:
+            token_usage = {
+                "prompt_tokens": usage.get("promptTokenCount", 0),
+                "completion_tokens": usage.get("candidatesTokenCount", 0),
+                "total_tokens": usage.get("totalTokenCount", 0),
+            }
+
+    entry = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "model": model,
+        "provider": provider,
+        "mode": mode,
+        "aspect_ratio": aspect_ratio,
+        "image_size": image_size,
+        "output_file": output_file,
+        "size_bytes": size_bytes,
+        "elapsed_seconds": round(elapsed_seconds, 1),
+        "token_usage": token_usage,
+    }
+
+    # Read existing entries
+    costs_path.parent.mkdir(parents=True, exist_ok=True)
+    entries: list[dict[str, Any]] = []
+    if costs_path.exists():
+        try:
+            entries = json.loads(costs_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            log.warning(f"Could not read {costs_path}, starting fresh")
+
+    entries.append(entry)
+    costs_path.write_text(json.dumps(entries, indent=2) + "\n", encoding="utf-8")
+    log.info(f"Cost entry logged to {costs_path}")
+
+    # Warn about .gitignore if applicable
+    gitignore = Path.cwd() / ".gitignore"
+    if gitignore.exists():
+        content = gitignore.read_text(encoding="utf-8")
+        if ".ai-image-creator" not in content:
+            print(
+                "TIP: Consider adding '.ai-image-creator/' to .gitignore",
+                file=sys.stderr,
+            )
+
+
+def display_costs() -> None:
+    """Display cost/generation history grouped by model.
+
+    Reads .ai-image-creator/costs.json from CWD and prints a formatted summary.
+    """
+    costs_path = get_costs_path()
+    if not costs_path.exists():
+        print("No cost history found for this project.", file=sys.stderr)
+        print(f"Expected: {costs_path}", file=sys.stderr)
+        sys.exit(0)
+
+    try:
+        entries = json.loads(costs_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"ERROR: Could not read costs file: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if not entries:
+        print("No generation entries recorded.", file=sys.stderr)
+        sys.exit(0)
+
+    # Group by model
+    by_model: dict[str, list[dict[str, Any]]] = {}
+    for entry in entries:
+        model = entry.get("model", "unknown")
+        by_model.setdefault(model, []).append(entry)
+
+    print(f"\nGeneration History ({len(entries)} total)")
+    print(f"Project: {Path.cwd()}")
+    print("=" * 60)
+
+    total_tokens = 0
+    total_time = 0.0
+
+    for model, model_entries in sorted(by_model.items()):
+        model_tokens = sum(
+            e.get("token_usage", {}).get("total_tokens", 0) for e in model_entries
+        )
+        model_time = sum(e.get("elapsed_seconds", 0) for e in model_entries)
+        total_tokens += model_tokens
+        total_time += model_time
+
+        print(f"\n  {model}")
+        print(f"    Generations: {len(model_entries)}")
+        print(f"    Total tokens: {model_tokens:,}")
+        print(f"    Total time: {model_time:.1f}s")
+
+        # Show last 3 entries
+        for entry in model_entries[-3:]:
+            ts = entry.get("timestamp", "?")[:19]
+            out = entry.get("output_file", "?")
+            size = entry.get("size_bytes", 0)
+            print(f"      {ts}  {out} ({size / 1024:.1f} KB)")
+
+    print(f"\n{'=' * 60}")
+    print(f"  Total: {len(entries)} generations, {total_tokens:,} tokens, {total_time:.1f}s")
+    print()
+
+
 def main() -> None:
     """Main entry point — parse args, generate image, write output."""
     args = parse_args()
@@ -638,6 +963,11 @@ def main() -> None:
     log.debug(f"Args: {vars(args)}")
     log.debug("=" * 60)
 
+    # Handle --costs (display and exit)
+    if args.costs:
+        display_costs()
+        sys.exit(0)
+
     # Handle --list-models
     if args.list_models:
         print("Available model keywords:")
@@ -648,9 +978,9 @@ def main() -> None:
             print(f"               modalities: {', '.join(info['modalities'])}")
         sys.exit(0)
 
-    # Validate --output is provided (required unless --list-models)
+    # Validate --output is provided (required unless --list-models or --costs)
     if not args.output:
-        print("ERROR: --output is required (unless using --list-models)", file=sys.stderr)
+        print("ERROR: --output is required (unless using --list-models or --costs)", file=sys.stderr)
         sys.exit(1)
 
     # Validate output path
@@ -665,8 +995,50 @@ def main() -> None:
     # Resolve model and modalities
     model, modalities = resolve_model(args.model, args.provider)
 
+    # Validate reference images
+    ref_images = args.ref or []
+    if ref_images:
+        # Check model supports multimodal input
+        if "text" not in modalities:
+            print(
+                f"ERROR: Reference images (-r) require a multimodal model. "
+                f"'{model}' only supports image output.\n"
+                f"Use --model gemini or --model gpt5 for image editing/style transfer.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        # Validate all ref files exist
+        for ref_path in ref_images:
+            if not Path(ref_path).exists():
+                print(f"ERROR: Reference image not found: {ref_path}", file=sys.stderr)
+                sys.exit(1)
+            if Path(ref_path).suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp", ".gif"):
+                print(f"WARNING: Unusual image extension: {ref_path}", file=sys.stderr)
+
+        print(f"Reference images: {len(ref_images)} file(s)", file=sys.stderr)
+
+    # Validate transparent mode tools
+    if args.transparent:
+        if not shutil.which("ffmpeg"):
+            print("ERROR: Transparent mode requires FFmpeg. Install with: brew install ffmpeg", file=sys.stderr)
+            sys.exit(1)
+        if not find_imagemagick():
+            print("ERROR: Transparent mode requires ImageMagick. Install with: brew install imagemagick", file=sys.stderr)
+            sys.exit(1)
+        print("Transparent mode: enabled", file=sys.stderr)
+
     # Resolve prompt
     prompt = resolve_prompt(args)
+
+    # Inject green screen instructions for transparent mode
+    if args.transparent:
+        prompt += (
+            "\n\nIMPORTANT: Place the subject on a perfectly solid, flat, bright green "
+            "background (#00FF00). No shadows, no gradients, no floor reflections — "
+            "just pure #00FF00 green everywhere behind the subject."
+        )
+
     print(f"Provider: {args.provider}", file=sys.stderr)
     print(f"Model: {model}", file=sys.stderr)
     print(f"Modalities: {', '.join(modalities)}", file=sys.stderr)
@@ -690,6 +1062,7 @@ def main() -> None:
     body = build_request_body(
         args.provider, model, prompt, args.aspect_ratio, args.image_size,
         modalities=modalities,
+        ref_images=ref_images if ref_images else None,
     )
 
     print(f"URL: {url}", file=sys.stderr)
@@ -731,20 +1104,51 @@ def main() -> None:
         log.debug(f"Image extraction failed. Raw response keys: {list(response.keys()) if response else 'None'}")
         sys.exit(1)
 
-    # Write output
+    # Write output (or process transparent mode)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_bytes(image_bytes)
+
+    if args.transparent:
+        # Write to temp file, then process through transparent pipeline
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_raw:
+            tmp_raw_path = Path(tmp_raw.name)
+        try:
+            tmp_raw_path.write_bytes(image_bytes)
+            process_transparent(tmp_raw_path, output_path)
+            # Re-read the processed file for size reporting
+            image_bytes = output_path.read_bytes()
+        finally:
+            tmp_raw_path.unlink(missing_ok=True)
+    else:
+        output_path.write_bytes(image_bytes)
 
     total_elapsed = time.time() - total_start
 
     # Report success
     size_kb = len(image_bytes) / 1024
     print(f"\nImage saved: {output_path} ({size_kb:.1f} KB)", file=sys.stderr)
+    if args.transparent:
+        print("  (transparent background)", file=sys.stderr)
     if text_content:
         print(f"Model notes: {text_content}", file=sys.stderr)
     log.info(f"Total elapsed: {total_elapsed:.1f}s")
     log.debug(f"Output file: {output_path.resolve()}")
     log.debug(f"File size: {len(image_bytes)} bytes ({size_kb:.1f} KB)")
+
+    # Log cost entry
+    try:
+        log_cost_entry(
+            response=response,
+            provider=args.provider,
+            model=model,
+            mode=mode,
+            aspect_ratio=args.aspect_ratio,
+            image_size=args.image_size,
+            output_file=str(output_path),
+            size_bytes=len(image_bytes),
+            elapsed_seconds=total_elapsed,
+        )
+    except OSError as e:
+        log.warning(f"Could not log cost entry: {e}")
 
     # Print machine-readable output to stdout
     result = {
@@ -755,6 +1159,8 @@ def main() -> None:
         "model": model,
         "mode": mode,
         "elapsed_seconds": round(total_elapsed, 1),
+        "transparent": args.transparent,
+        "ref_images": len(ref_images),
     }
     log.debug(f"Result JSON: {json.dumps(result, indent=2)}")
     print(json.dumps(result))
