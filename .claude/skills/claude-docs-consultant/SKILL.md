@@ -1,158 +1,91 @@
 ---
 name: claude-docs-consultant
-description: Consult official Claude Code documentation from docs.claude.com using selective fetching. Use this skill when working on Claude Code hooks, skills, subagents, MCP servers, or any Claude Code feature that requires referencing official documentation for accurate implementation. Fetches only the specific documentation needed rather than loading all docs upfront.
+description: Consult official Claude Code documentation from code.claude.com using selective fetching. Use when working on hooks, skills, subagents, plugins, agent teams, MCP servers, permissions, settings, CI/CD (GitHub Actions, GitLab), IDE extensions (VS Code, JetBrains), desktop/web app features, scheduling, memory/CLAUDE.md, deployment (Bedrock, Vertex, Foundry), sandboxing, monitoring, or any Claude Code feature requiring official docs. Fetches only the specific docs needed per task.
+metadata:
+  version: 2.0.0
 ---
 
 # Claude Docs Consultant
 
-## Overview
+Fetch official Claude Code documentation on-demand from code.claude.com. Uses progressive disclosure: resolve the topic to a filename, then fetch only that doc. Never fetch documentation speculatively.
 
-This skill enables efficient consultation of official Claude Code documentation by fetching only the specific docs needed for the current task. Instead of loading all documentation upfront, determine which docs are relevant and fetch them on-demand.
+## URL Pattern
 
-## When to Use This Skill
-
-Invoke this skill when:
-
-- Creating or modifying Claude Code hooks
-- Building or debugging skills
-- Working with subagents or understanding subagent parameters
-- Implementing MCP server integrations
-- Understanding any Claude Code feature that requires official documentation
-- Troubleshooting Claude Code functionality
-- Verifying correct API usage or parameters
-
-## Common Documentation
-
-For the most frequently referenced topics, fetch these detailed documentation files directly:
-
-### Hooks Documentation
-
-- **hooks-guide.md** - Comprehensive guide to creating hooks with examples and best practices
-
-  - URL: `https://code.claude.com/docs/en/hooks-guide.md`
-  - Use for: Understanding hook lifecycle, creating new hooks, examples
-
-- **hooks.md** - Hooks API reference with event types and parameters
-  - URL: `https://code.claude.com/docs/en/hooks.md`
-  - Use for: Hook event reference, available events, parameter details
-
-### Skills Documentation
-
-- **skills.md** - Skills creation guide and structure reference
-  - URL: `https://code.claude.com/docs/en/skills.md`
-  - Use for: Creating skills, understanding SKILL.md format, bundled resources
-
-### Subagents Documentation
-
-- **sub-agents.md** - Subagent types, parameters, and usage
-  - URL: `https://code.claude.com/docs/en/sub-agents.md`
-  - Use for: Available subagent types, when to use Task tool, subagent parameters
-
-## Workflow for Selective Fetching
-
-Follow this process to efficiently fetch documentation:
-
-### Step 1: Identify Documentation Needs
-
-Determine which documentation is needed based on the task:
-
-- **Hook-related task** → Fetch `hooks-guide.md` and/or `hooks.md`
-- **Skill-related task** → Fetch `skills.md`
-- **Subagent-related task** → Fetch `sub-agents.md`
-- **Other Claude Code feature** → Proceed to Step 2
-
-### Step 2: Discover Available Documentation (If Needed)
-
-For features not covered by the 4 common docs above, fetch the docs map to discover available documentation:
+All docs follow this pattern — substitute the filename:
 
 ```
-URL: https://code.claude.com/docs/en/claude_code_docs_map.md
+https://code.claude.com/docs/en/{filename}.md
 ```
 
-The docs map lists all available Claude Code documentation with descriptions. Identify the relevant doc(s) from the map.
+## Quick Routing (Common Topics)
 
-### Step 3: Fetch Only Relevant Documentation
+For these high-frequency topics, fetch directly without consulting the full index:
 
-Use WebFetch to retrieve only the specific documentation needed:
+| Topic | Filename(s) to fetch |
+| --- | --- |
+| Hooks (creating, events, lifecycle) | `hooks-guide.md` (guide + examples), `hooks.md` (API reference + all events) |
+| Skills (creating, SKILL.md format, triggers) | `skills.md` |
+| Subagents (types, config, delegation) | `sub-agents.md` |
+| Agent Teams (multi-agent, teammates, cowork) | `agent-teams.md` |
+| Plugins (creating, marketplace, installing) | `plugins.md` (creating), `discover-plugins.md` (marketplace + installing) |
+| MCP Servers (setup, config, scopes) | `mcp.md` |
+| Settings (settings.json, config scopes) | `settings.md` |
+| Permissions (rules, modes, auto mode) | `permissions.md` (rules + syntax), `permission-modes.md` (plan/auto/dontAsk modes) |
+| Memory (CLAUDE.md, auto memory, rules) | `memory.md` |
+| GitHub Actions (CI/CD, @claude PR) | `github-actions.md` |
+
+## Full Routing
+
+For topics not listed above, consult `references/docs-index.md` for the complete routing table covering all 60+ documentation pages across platforms, deployment, security, configuration, administration, and reference.
+
+## Workflow
+
+1. **Identify topic** — determine which Claude Code feature the task involves
+2. **Route to filename** — use quick routing above, or consult `references/docs-index.md`
+3. **Fetch with WebFetch** — use the URL pattern with the resolved filename
+
+Fetch multiple docs in parallel when the task spans multiple topics.
+
+## Fallback: Discovery via Docs Map
+
+If routing does not match any known filename, fetch the documentation map to discover available pages:
 
 ```
-WebFetch:
-  url: https://code.claude.com/docs/en/[doc-name].md
-  prompt: "Extract the full documentation content"
+https://code.claude.com/docs/en/claude_code_docs_map.md
 ```
 
-Fetch multiple docs in parallel if the task requires information from several sources.
+Identify the relevant doc from the map, then fetch it using the URL pattern.
 
-### Step 4: Apply Documentation to Task
+## Rules
 
-Use the fetched documentation to:
-
-- Verify correct API usage
-- Understand available parameters and options
-- Follow best practices and examples
-- Implement the feature correctly
+- Fetch only the docs actually needed for the current task
+- Fetch multiple docs in parallel if the task requires 2+ sources
+- Always fetch live from code.claude.com — do not use cached or memorized content
+- Do not fetch docs "just in case" — fetch when required by the task
 
 ## Examples
 
-### Example 1: Creating a New Hook
+### Example 1: Creating a Hook
 
-**User request:** "Help me create a pre-tool-use hook to log all tool calls"
+**Task:** "Help me create a pre-tool-use hook to log tool calls"
 
-**Process:**
+1. Route: hook creation -> `hooks-guide.md` + `hooks.md`
+2. Fetch both in parallel via WebFetch
+3. Apply: create hook using guide examples and API reference for PreToolUse event
 
-1. Identify need: Hook creation requires hooks documentation
-2. Fetch `hooks-guide.md` for creation process and examples
-3. Fetch `hooks.md` for pre-tool-use event reference
-4. Apply: Create hook following guide, using correct event parameters
+### Example 2: Installing a Plugin
 
-### Example 2: Debugging a Skill
+**Task:** "How do I install plugins from a marketplace?"
 
-**User request:** "My skill isn't loading - help me fix SKILL.md"
+1. Route: plugin installing -> `discover-plugins.md`
+2. Fetch via WebFetch
+3. Apply: follow marketplace and installation instructions
 
-**Process:**
+### Example 3: Unknown Feature
 
-1. Identify need: Skill structure requires skills documentation
-2. Fetch `skills.md` for SKILL.md format requirements
-3. Apply: Validate frontmatter, structure, and bundled resources
+**Task:** "How do I configure Claude Code output styles?"
 
-### Example 3: Using Subagents
-
-**User request:** "Which subagent should I use to search the codebase?"
-
-**Process:**
-
-1. Identify need: Subagent selection requires subagent documentation
-2. Fetch `sub-agents.md` for subagent types and capabilities
-3. Apply: Recommend appropriate subagent (e.g., Explore or code-searcher)
-
-### Example 4: Unknown Feature
-
-**User request:** "How do I configure Claude Code settings.json?"
-
-**Process:**
-
-1. Identify need: Not covered by the 4 common docs
-2. Fetch docs map: `claude_code_docs_map.md`
-3. Discover: Find relevant doc (e.g., `settings.md`)
-4. Fetch specific doc: `https://code.claude.com/docs/en/settings.md`
-5. Apply: Configure settings.json correctly
-
-## Best Practices
-
-### Token Efficiency
-
-- Fetch only the documentation actually needed for the current task
-- Fetch multiple docs in parallel if needed (single message with multiple WebFetch calls)
-- Do not fetch documentation "just in case" - fetch when required
-
-### Staying Current
-
-- Always fetch from docs.claude.com (live docs, not cached copies)
-- Documentation may be updated by Anthropic - fetching ensures latest information
-- If documentation seems outdated or unclear, verify URL is correct
-
-### Selective vs Comprehensive
-
-- **Selective (preferred)**: Fetch hooks-guide.md for hook creation task
-- **Comprehensive (avoid)**: Fetch all 4 common docs for every task
-- **Discovery-based**: Use docs map when common docs don't cover the need
+1. Route: not in quick routing table
+2. Consult `references/docs-index.md` -> find `output-styles.md` under Configuration
+3. Fetch `output-styles.md` via WebFetch
+4. Apply: configure output styles per documentation
