@@ -817,10 +817,10 @@ Skills are defined in `.claude/skills/` directories containing:
 | Keyword | Model |
 |---------|-------|
 | `gemini` | Google Gemini 3.1 Flash (default) |
-| `riverflow` | Sourceful Riverflow v2 Fast |
-| `flux2` | FLUX.2 Klein 4B |
+| `riverflow` | Sourceful Riverflow v2 Pro |
+| `flux2` | FLUX.2 Max |
 | `seedream` | ByteDance SeedDream 4.5 |
-| `gpt5` | OpenAI GPT-5 Image Mini |
+| `gpt5` | OpenAI GPT-5 Image |
 
 **Providers**:
 - OpenRouter (recommended, pay-as-you-go)
@@ -832,8 +832,15 @@ Skills are defined in `.claude/skills/` directories containing:
 - Configurable aspect ratios: 1:1, 16:9, 9:16, 3:2, 2:3, 4:3, 3:4, 4:5, 5:4, 21:9, 1:4, 4:1
 - Image sizes: 0.5K, 1K (default), 2K, 4K
 - Automatic fallback from gateway to direct API
+- Transparent background generation (`-t`) with green-screen chroma key pipeline
+- Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
+- Per-project cost tracking (`--costs`) with per-model breakdown
+- Prompt enhancement with 11 category-specific professional patterns
+- Composite banners for multi-size logo banners via ImageMagick (no API calls needed)
 - Post-processing with ImageMagick, sips (macOS), or ffmpeg
 - Pure Python (no pip dependencies), requires `uv` runner
+
+**Composite Banners**: Generate consistent logo banners across multiple sizes from a JSON config using ImageMagick. Use when the user has an existing logo and wants multi-size branded banners (not creative/artistic designs). Quick start: `--init` to scaffold config, `--validate` to check, then generate. See [composite reference](.claude/skills/ai-image-creator/references/composite-reference.md) for full config schema.
 
 **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, or make visual assets.
 
