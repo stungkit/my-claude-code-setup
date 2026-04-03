@@ -213,6 +213,12 @@ def parse_args() -> argparse.Namespace:
         help="Reference image file(s) for editing/style transfer (repeatable, multimodal models only)",
     )
     parser.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyze/describe a reference image instead of generating one. "
+             "Requires -r. Returns text description (no image output).",
+    )
+    parser.add_argument(
         "-t", "--transparent",
         action="store_true",
         help="Generate with transparent background (requires ffmpeg + imagemagick)",
@@ -694,6 +700,68 @@ def extract_image_google(response: dict) -> tuple[bytes, str]:
     return image_bytes, text_content
 
 
+def extract_text_openrouter(response: dict) -> str:
+    """Extract text-only content from OpenRouter response (analyze mode).
+
+    Args:
+        response: Parsed JSON response from OpenRouter API.
+
+    Returns:
+        The model's text response.
+
+    Raises:
+        RuntimeError: If no text content found in response.
+    """
+    choices = response.get("choices", [])
+    if not choices:
+        error = response.get("error", {})
+        if error:
+            msg = error.get("message", str(error))
+            raise RuntimeError(f"API error: {msg}")
+        raise RuntimeError(f"No choices in response: {json.dumps(response)[:500]}")
+
+    message = choices[0].get("message", {})
+    text_content = message.get("content", "")
+
+    if not text_content:
+        raise RuntimeError("No text content in response (empty model reply)")
+
+    log.info(f"Extracted text: {len(text_content)} chars")
+    return text_content
+
+
+def extract_text_google(response: dict) -> str:
+    """Extract text-only content from Google AI Studio response (analyze mode).
+
+    Args:
+        response: Parsed JSON response from Google generateContent API.
+
+    Returns:
+        The model's text response.
+
+    Raises:
+        RuntimeError: If no text content found or prompt was blocked.
+    """
+    candidates = response.get("candidates", [])
+    if not candidates:
+        block_reason = response.get("promptFeedback", {}).get("blockReason", "")
+        if block_reason:
+            raise RuntimeError(f"Prompt blocked by safety filter: {block_reason}")
+        raise RuntimeError(f"No candidates in response: {json.dumps(response)[:500]}")
+
+    parts = candidates[0].get("content", {}).get("parts", [])
+    if not parts:
+        raise RuntimeError("No parts in response candidate")
+
+    text_parts = [part["text"] for part in parts if "text" in part]
+    if not text_parts:
+        raise RuntimeError("No text content in response parts")
+
+    text_content = "\n".join(text_parts)
+    log.info(f"Extracted text: {len(text_content)} chars")
+    return text_content
+
+
 def find_imagemagick() -> str | None:
     """Find ImageMagick binary (magick for v7, convert for v6).
 
@@ -978,14 +1046,26 @@ def main() -> None:
             print(f"               modalities: {', '.join(info['modalities'])}")
         sys.exit(0)
 
-    # Validate --output is provided (required unless --list-models or --costs)
-    if not args.output:
-        print("ERROR: --output is required (unless using --list-models or --costs)", file=sys.stderr)
+    # Validate --analyze mode
+    if args.analyze:
+        if not args.ref:
+            print("ERROR: --analyze requires at least one reference image (-r)", file=sys.stderr)
+            sys.exit(1)
+        if args.transparent:
+            print("ERROR: --analyze is incompatible with --transparent", file=sys.stderr)
+            sys.exit(1)
+        if args.aspect_ratio or args.image_size:
+            print("ERROR: --analyze is incompatible with --aspect-ratio / --image-size", file=sys.stderr)
+            sys.exit(1)
+
+    # Validate --output is provided (required unless --list-models, --costs, or --analyze)
+    if not args.output and not args.analyze:
+        print("ERROR: --output is required (unless using --list-models, --costs, or --analyze)", file=sys.stderr)
         sys.exit(1)
 
     # Validate output path
-    output_path = Path(args.output)
-    if output_path.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp"):
+    output_path = Path(args.output) if args.output else None
+    if output_path and output_path.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp"):
         print(
             "WARNING: Output file does not have an image extension. "
             "The generated file will be PNG format regardless of extension.",
@@ -1028,6 +1108,16 @@ def main() -> None:
             sys.exit(1)
         print("Transparent mode: enabled", file=sys.stderr)
 
+    # Default prompt for analyze mode (if user didn't provide one)
+    if args.analyze and not args.prompt and not args.prompt_file:
+        default_prompt_path = Path(__file__).parent.parent / "tmp" / "prompt.txt"
+        if not default_prompt_path.exists():
+            args.prompt = (
+                "Describe this image in detail. Include the subject, style, colors, "
+                "composition, mood, and any text visible in the image."
+            )
+            log.debug("Using default analyze prompt")
+
     # Resolve prompt
     prompt = resolve_prompt(args)
 
@@ -1038,6 +1128,11 @@ def main() -> None:
             "background (#00FF00). No shadows, no gradients, no floor reflections — "
             "just pure #00FF00 green everywhere behind the subject."
         )
+
+    # Override modalities for analyze mode (text-only output)
+    if args.analyze:
+        modalities = ["text"]
+        print("Mode: analyze (text-only output)", file=sys.stderr)
 
     print(f"Provider: {args.provider}", file=sys.stderr)
     print(f"Model: {model}", file=sys.stderr)
@@ -1066,7 +1161,10 @@ def main() -> None:
     )
 
     print(f"URL: {url}", file=sys.stderr)
-    print("Generating image (this may take up to 2 minutes)...", file=sys.stderr)
+    if args.analyze:
+        print("Analyzing image (this may take up to 2 minutes)...", file=sys.stderr)
+    else:
+        print("Generating image (this may take up to 2 minutes)...", file=sys.stderr)
 
     # Make request with fallback
     total_start = time.time()
@@ -1093,6 +1191,55 @@ def main() -> None:
             log.debug(f"Request failed. Total time: {time.time() - total_start:.1f}s")
             sys.exit(1)
 
+    # --- Analyze mode: extract text only, no image ---
+    if args.analyze:
+        total_elapsed = time.time() - total_start
+        try:
+            if args.provider == "openrouter":
+                analysis_text = extract_text_openrouter(response)
+            else:
+                analysis_text = extract_text_google(response)
+        except RuntimeError as e:
+            print(f"ERROR: {e}", file=sys.stderr)
+            log.debug(f"Text extraction failed. Raw response keys: {list(response.keys()) if response else 'None'}")
+            sys.exit(1)
+
+        print(f"\nAnalysis complete ({total_elapsed:.1f}s)", file=sys.stderr)
+        log.info(f"Total elapsed: {total_elapsed:.1f}s")
+
+        # Log cost entry
+        try:
+            log_cost_entry(
+                response=response,
+                provider=args.provider,
+                model=model,
+                mode=mode,
+                aspect_ratio=None,
+                image_size=None,
+                output_file="(analyze)",
+                size_bytes=0,
+                elapsed_seconds=total_elapsed,
+            )
+        except OSError as e:
+            log.warning(f"Could not log cost entry: {e}")
+
+        # Print machine-readable output to stdout
+        result = {
+            "ok": True,
+            "analyze": True,
+            "analysis": analysis_text,
+            "provider": args.provider,
+            "model": model,
+            "mode": mode,
+            "elapsed_seconds": round(total_elapsed, 1),
+            "ref_images": len(ref_images),
+        }
+        log.debug(f"Result JSON: {json.dumps(result, indent=2)}")
+        print(json.dumps(result))
+        sys.exit(0)
+
+    # --- Image generation mode ---
+
     # Extract image
     try:
         if args.provider == "openrouter":
@@ -1105,6 +1252,7 @@ def main() -> None:
         sys.exit(1)
 
     # Write output (or process transparent mode)
+    assert output_path is not None  # guaranteed by validation above
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if args.transparent:

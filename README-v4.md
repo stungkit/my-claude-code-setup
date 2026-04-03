@@ -834,6 +834,7 @@ Skills are defined in `.claude/skills/` directories containing:
 - Automatic fallback from gateway to direct API
 - Transparent background generation (`-t`) with green-screen chroma key pipeline
 - Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
+- Image analysis/description (`--analyze`) — text-only output; no image generated. Multimodal models only (gemini, gpt5)
 - Per-project cost tracking (`--costs`) with per-model breakdown
 - Prompt enhancement with 11 category-specific professional patterns
 - Composite banners for multi-size logo banners via ImageMagick (no API calls needed)
@@ -842,7 +843,9 @@ Skills are defined in `.claude/skills/` directories containing:
 
 **Composite Banners**: Generate consistent logo banners across multiple sizes from a JSON config using ImageMagick. Use when the user has an existing logo and wants multi-size branded banners (not creative/artistic designs). Quick start: `--init` to scaffold config, `--validate` to check, then generate. See [composite reference](.claude/skills/ai-image-creator/references/composite-reference.md) for full config schema.
 
-**Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, or make visual assets.
+**Image Analysis**: Describe, analyze, or explain existing images using multimodal AI vision (`--analyze`). Returns text-only JSON output — no image generated. Pass `-r` with the image file and optionally `-p` with a custom prompt. Multimodal models only (gemini, gpt5). Example: `--analyze -r photo.png -p "What text is visible?"`.
+
+**Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, make visual assets, or describe/analyze existing images.
 
 ---
 

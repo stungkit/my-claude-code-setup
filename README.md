@@ -894,13 +894,14 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
   * Automatic fallback from gateway to direct API
   * Transparent background generation (`-t`) with green-screen chroma key pipeline
   * Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
+  * Image analysis/description (`--analyze`) — text-only output from multimodal models (gemini, gpt5); no image generated
   * Per-project cost tracking (`--costs`) with per-model breakdown
   * Prompt enhancement with 11 category-specific professional patterns (product hero, social media, marketing banners, etc.)
   * Composite banners for multi-size logo banners via ImageMagick — no API calls needed
   * Post-processing support with ImageMagick, sips (macOS), or ffmpeg
   * Pure Python script with no pip dependencies (requires `uv` runner)
 * **Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md) for detailed instructions
-* **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, or make visual assets
+* **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, make visual assets, or describe/analyze existing images
 
 ## Claude Code Hooks
 
