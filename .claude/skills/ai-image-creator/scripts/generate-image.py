@@ -80,6 +80,34 @@ ENV_CF_TOKEN = "AI_IMG_CREATOR_CF_TOKEN"
 ENV_OPENROUTER_KEY = "AI_IMG_CREATOR_OPENROUTER_KEY"
 ENV_GEMINI_KEY = "AI_IMG_CREATOR_GEMINI_KEY"
 
+def _load_dotenv() -> None:
+    """Load .env files into os.environ (stdlib only, no pip deps).
+
+    Search order (first found wins per key):
+      1. .env in the same directory as this script (skill-level)
+      2. .env in the current working directory (project-level)
+    Keys already present in os.environ are never overwritten.
+    """
+    candidates = [
+        Path(__file__).parent / ".env",
+        Path.cwd() / ".env",
+    ]
+    for env_file in candidates:
+        if not env_file.is_file():
+            continue
+        with env_file.open() as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, _, val = line.partition("=")
+                key = key.strip()
+                val = val.strip().strip("'\"")
+                if key and key not in os.environ:
+                    os.environ[key] = val
+
+_load_dotenv()
+
 # Logger — configured in main() based on --debug / --verbose flags
 log = logging.getLogger("ai-image-creator")
 
