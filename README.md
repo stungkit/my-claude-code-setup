@@ -904,6 +904,22 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
 * **Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md) for detailed instructions
 * **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, make visual assets, or describe/analyze existing images
 
+### session-metrics
+
+* **Purpose**: Parse Claude Code's JSONL conversation logs into a per-turn breakdown of token usage, cache efficiency, cost, and activity patterns — useful for understanding your own usage, spotting cache issues, and debugging rate-limit / weekly-session-cap questions
+* **Location**: `.claude/skills/session-metrics/`
+* **Key Features**:
+  * Zero network at runtime — purely local JSONL parsing, no telemetry
+  * Stdlib-only Python (runs via `uv run python`)
+  * Multi-format export: text, JSON, CSV, Markdown, HTML (2-page dashboard + detail split by default, `--single-page` to override)
+  * 5-hour session blocks with trailing 7/14/30-day counters — closest signal available for tracking toward the weekly session cap
+  * Weekly roll-up: trailing 7 days vs prior 7 days with percentage deltas (cost, turns, prompts, blocks, cache hit ratio)
+  * Session duration + burn rate (tokens/min, $/min) per session
+  * Hour-of-day 24-bucket bars + weekday × hour punchcard in your chosen timezone
+  * Pluggable chart library via `--chart-lib {highcharts,uplot,chartjs,none}` — Highcharts default (vendored + SHA-256 verified, non-commercial licence); uPlot and Chart.js are MIT alternatives; `none` emits a JS-free detail page
+  * Input validation and path-containment checks so `--session` / `--slug` / env vars can't escape `~/.claude/projects/`
+* **Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", or "session summary". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py`
+
 ## Claude Code Hooks
 
 The Claude Code hook is for `STOP` which uses Terminal-Notifier to show macOS desktop notifications whenever Claude Code stops and finishes it's response https://github.com/centminmod/terminal-notifier-setup.

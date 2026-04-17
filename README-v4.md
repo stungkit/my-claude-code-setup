@@ -771,6 +771,7 @@ Skills are defined in `.claude/skills/` directories containing:
 | consult-zai | Dual-AI consultation: z.ai GLM 4.7 vs code-searcher | `/consult-zai "question"` or via Skill tool | `.claude/skills/consult-zai/` |
 | consult-codex | Dual-AI consultation: Codex GPT-5.2 vs code-searcher | `/consult-codex "question"` or via Skill tool | `.claude/skills/consult-codex/` |
 | ai-image-creator | Generate PNG images using AI (multiple models via OpenRouter) | `/ai-image-creator` or via Skill tool | `.claude/skills/ai-image-creator/` |
+| session-metrics | Parse JSONL logs for per-turn token/cost/cache metrics with multi-format export | Auto-triggers on cost/usage questions or manual CLI | `.claude/skills/session-metrics/` |
 
 #### claude-docs-consultant
 
@@ -846,6 +847,48 @@ Skills are defined in `.claude/skills/` directories containing:
 **Image Analysis**: Describe, analyze, or explain existing images using multimodal AI vision (`--analyze`). Returns text-only JSON output — no image generated. Pass `-r` with the image file and optionally `-p` with a custom prompt. Multimodal models only (gemini, gpt5). Example: `--analyze -r photo.png -p "What text is visible?"`.
 
 **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, make visual assets, or describe/analyze existing images.
+
+#### session-metrics
+
+**Purpose**: Parse Claude Code's JSONL conversation logs into a per-turn breakdown of token usage, cache efficiency, cost, and activity patterns. Useful for spotting cache issues and debugging rate-limit / weekly-session-cap questions.
+
+**Location**: `.claude/skills/session-metrics/`
+
+**Runtime**: Stdlib-only Python via `uv run python`. Zero network at runtime — JSONL parsing only, no telemetry.
+
+**Export formats** (via `--output`):
+
+- `text` (default, stdout) — timeline-ordered cost summary
+- `json` — full structured report with all turns, subtotals, model rates
+- `csv` — one row per turn (session_id, index, timestamp, model, tokens, cost)
+- `md` — summary table + per-session Markdown tables
+- `html` — dark-themed report with summary cards, charts, and insights; 2-page split (dashboard + detail) by default, or `--single-page` for a single file
+
+**Insights produced**:
+
+- Per-turn timeline (timestamp, model, input/output/cache-read/cache-write tokens, cost)
+- Subtotals per session (`--project-cost`) and project grand total
+- Cache savings vs hypothetical no-cache run + cache hit ratio
+- 5-hour session blocks with trailing 7/14/30-day counters — closest available signal for "am I tracking toward the weekly session cap"
+- Weekly roll-up: trailing 7d vs prior 7d with percentage deltas (cost, turns, prompts, blocks, cache hit ratio)
+- Session duration + burn rate ($/min, tokens/min) per session
+- Hour-of-day 24-bucket bars + weekday × hour 7×24 punchcard in chosen timezone
+- Optional peak-hour band (`--peak-hours H-H --peak-tz <IANA>`) — community-reported, not an Anthropic SLA
+
+**Chart library** (`--chart-lib`):
+
+| Value        | Licence             | Notes                                                       |
+|--------------|---------------------|-------------------------------------------------------------|
+| `highcharts` | non-commercial-free | Default. Richest visualisation. Commercial use needs a paid Highsoft licence. |
+| `uplot`      | MIT                 | Lightweight; good default for commercial contexts.          |
+| `chartjs`    | MIT                 | Familiar API.                                               |
+| `none`       | n/a                 | No chart library, smallest output, no JS dependency.        |
+
+All three libraries are vendored and SHA-256 verified. See `.claude/skills/session-metrics/scripts/vendor/charts/README.md` for per-library LICENSE.txt files and a refresh recipe.
+
+**Security**: CLI inputs (`--session`, `--slug`) and their env-var equivalents (`CLAUDE_SESSION_ID`, `CLAUDE_PROJECT_SLUG`, `CLAUDE_PROJECTS_DIR`) are validated against strict allowlists; path traversal is rejected; resolved file paths are asserted to live under `~/.claude/projects/` before any read.
+
+**Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", "session summary", or "cost so far". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py [flags]`.
 
 ---
 
