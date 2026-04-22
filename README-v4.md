@@ -888,7 +888,9 @@ All three libraries are vendored and SHA-256 verified. See `.claude/skills/sessi
 
 **Security**: CLI inputs (`--session`, `--slug`) and their env-var equivalents (`CLAUDE_SESSION_ID`, `CLAUDE_PROJECT_SLUG`, `CLAUDE_PROJECTS_DIR`) are validated against strict allowlists; path traversal is rejected; resolved file paths are asserted to live under `~/.claude/projects/` before any read.
 
-**Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", "session summary", or "cost so far". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py [flags]`.
+**Instance-wide dashboard** (v1.14.0+, `--all-projects`): aggregates every project under `~/.claude/projects/` into a single dated export folder (`exports/session-metrics/instance/YYYY-MM-DD-HHMMSS/`). Contains `index.html` (summary cards, daily-cost timeline stacked by tokens, projects breakdown table sorted by cost descending, aggregated models/weekly/hour-of-day/punchcard rollups) plus a `projects/<slug>.html` per project with the full per-turn drilldown, hyperlinked from the index. `--no-project-drilldown` skips drilldowns for a fast flat index; `--projects-dir /path` targets a non-default install (also honours `CLAUDE_PROJECTS_DIR`).
+
+**Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", "session summary", "cost so far", or "how much have I spent across all my projects?". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py [flags]`. Also installable as a Claude Code plugin: `/plugin marketplace add centminmod/claude-plugins` then `/plugin install session-metrics@centminmod`.
 
 ---
 

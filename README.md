@@ -918,7 +918,8 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
   * Hour-of-day 24-bucket bars + weekday × hour punchcard in your chosen timezone
   * Pluggable chart library via `--chart-lib {highcharts,uplot,chartjs,none}` — Highcharts default (vendored + SHA-256 verified, non-commercial licence); uPlot and Chart.js are MIT alternatives; `none` emits a JS-free detail page
   * Input validation and path-containment checks so `--session` / `--slug` / env vars can't escape `~/.claude/projects/`
-* **Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", or "session summary". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py`
+  * Instance-wide dashboard (v1.14.0+) via `--all-projects` — aggregates every project under `~/.claude/projects/` into a single dated export folder (`exports/session-metrics/instance/YYYY-MM-DD-HHMMSS/`) with per-project HTML drilldowns, daily-cost timeline chart, and a projects breakdown table sorted by cost descending. Add `--no-project-drilldown` for a flat fast-path index; `--projects-dir /path` to target a secondary Claude Code install (also honours `CLAUDE_PROJECTS_DIR`)
+* **Usage**: Auto-triggers when you ask questions like "how much has this session cost?", "show me token usage", or "session summary". Manual: `uv run python .claude/skills/session-metrics/scripts/session-metrics.py`. Install via marketplace: `/plugin marketplace add centminmod/claude-plugins` then `/plugin install session-metrics@centminmod`
 
 ## Claude Code Hooks
 
