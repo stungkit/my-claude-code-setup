@@ -71,6 +71,11 @@ MODEL_REGISTRY: dict[str, dict[str, Any]] = {
         "modalities": ["image", "text"],
         "description": "OpenAI GPT-5 Image — multimodal (text+image)",
     },
+    "gpt5.4": {
+        "id": "openai/gpt-5.4-image-2",
+        "modalities": ["image", "text"],
+        "description": "OpenAI GPT-5.4 Image 2 — multimodal (text+image), 272K context",
+    },
 }
 
 # Environment variable names (prefixed to avoid collisions)
@@ -232,7 +237,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "-m", "--model",
         default=None,
-        help="Model keyword (gemini, riverflow, flux2, seedream, gpt5) or full model ID",
+        help="Model keyword (gemini, riverflow, flux2, seedream, gpt5, gpt5.4) or full model ID",
     )
     parser.add_argument(
         "-r", "--ref",
@@ -971,7 +976,12 @@ def log_cost_entry(
             log.warning(f"Could not read {costs_path}, starting fresh")
 
     entries.append(entry)
-    costs_path.write_text(json.dumps(entries, indent=2) + "\n", encoding="utf-8")
+    # Atomic write: temp file + rename to prevent corruption on Ctrl-C
+    import tempfile as _tf
+    with _tf.NamedTemporaryFile("w", dir=str(costs_path.parent), delete=False, suffix=".tmp") as f:
+        f.write(json.dumps(entries, indent=2) + "\n")
+        tmp_path = Path(f.name)
+    tmp_path.replace(costs_path)
     log.info(f"Cost entry logged to {costs_path}")
 
     # Warn about .gitignore if applicable

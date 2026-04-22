@@ -886,16 +886,16 @@ Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-c
 
 ### ai-image-creator
 
-* **Purpose**: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK)
+* **Purpose**: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, GPT-5.4 Image 2, proxied through Cloudflare AI Gateway BYOK)
 * **Location**: `.claude/skills/ai-image-creator/`
 * **Key Features**:
-  * Model selection via keywords: gemini (default), riverflow, flux2, seedream, gpt5
+  * Model selection via keywords: gemini (default), riverflow, flux2, seedream, gpt5, gpt5.4
   * Supports configurable aspect ratios (1:1, 16:9, 9:16, 3:2, 4:3, etc.) and image sizes (0.5K to 4K)
   * Multiple providers: OpenRouter (recommended), Google AI Studio, Cloudflare AI Gateway BYOK
   * Automatic fallback from gateway to direct API
   * Transparent background generation (`-t`) with green-screen chroma key pipeline
-  * Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
-  * Image analysis/description (`--analyze`) — text-only output from multimodal models (gemini, gpt5); no image generated
+  * Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5, gpt5.4)
+  * Image analysis/description (`--analyze`) — text-only output from multimodal models (gemini, gpt5, gpt5.4); no image generated
   * Per-project cost tracking (`--costs`) with per-model breakdown
   * Prompt enhancement with 11 category-specific professional patterns (product hero, social media, marketing banners, etc.)
   * Composite banners for multi-size logo banners via ImageMagick — no API calls needed

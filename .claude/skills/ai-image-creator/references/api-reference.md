@@ -11,10 +11,11 @@ All models use the same OpenRouter `/v1/chat/completions` endpoint and response 
 | `flux2` | [`black-forest-labs/flux.2-max`](https://openrouter.ai/black-forest-labs/flux.2-max) | `["image"]` | Image-only |
 | `seedream` | [`bytedance-seed/seedream-4.5`](https://openrouter.ai/bytedance-seed/seedream-4.5) | `["image"]` | Image-only |
 | `gpt5` | [`openai/gpt-5-image`](https://openrouter.ai/openai/gpt-5-image) | `["image", "text"]` | Multimodal |
+| `gpt5.4` | [`openai/gpt-5.4-image-2`](https://openrouter.ai/openai/gpt-5.4-image-2) | `["image", "text"]` | Multimodal |
 
 **Important:** Image-only models MUST use `"modalities": ["image"]`. Using `["image", "text"]` may cause errors with these models. The script handles this automatically when using keywords.
 
-**Reference image support:** Only multimodal models (gemini, gpt5) support image input for editing and style transfer. Image-only models (riverflow, flux2, seedream) do not accept reference images.
+**Reference image support:** Only multimodal models (gemini, gpt5, gpt5.4) support image input for editing and style transfer. Image-only models (riverflow, flux2, seedream) do not accept reference images.
 
 ---
 

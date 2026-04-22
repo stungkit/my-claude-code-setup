@@ -809,7 +809,7 @@ Skills are defined in `.claude/skills/` directories containing:
 
 #### ai-image-creator
 
-**Purpose**: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK).
+**Purpose**: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, GPT-5.4 Image 2, proxied through Cloudflare AI Gateway BYOK).
 
 **Setup**: Requires API credentials and optional Cloudflare AI Gateway configuration before use. See [setup guide](.claude/skills/ai-image-creator/references/setup-guide.md).
 
@@ -822,6 +822,7 @@ Skills are defined in `.claude/skills/` directories containing:
 | `flux2` | FLUX.2 Max |
 | `seedream` | ByteDance SeedDream 4.5 |
 | `gpt5` | OpenAI GPT-5 Image |
+| `gpt5.4` | OpenAI GPT-5.4 Image 2 (272K context) |
 
 **Providers**:
 - OpenRouter (recommended, pay-as-you-go)
@@ -834,8 +835,8 @@ Skills are defined in `.claude/skills/` directories containing:
 - Image sizes: 0.5K, 1K (default), 2K, 4K
 - Automatic fallback from gateway to direct API
 - Transparent background generation (`-t`) with green-screen chroma key pipeline
-- Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5)
-- Image analysis/description (`--analyze`) — text-only output; no image generated. Multimodal models only (gemini, gpt5)
+- Reference image editing/style transfer (`-r`) for multimodal models (gemini, gpt5, gpt5.4)
+- Image analysis/description (`--analyze`) — text-only output; no image generated. Multimodal models only (gemini, gpt5, gpt5.4)
 - Per-project cost tracking (`--costs`) with per-model breakdown
 - Prompt enhancement with 11 category-specific professional patterns
 - Composite banners for multi-size logo banners via ImageMagick (no API calls needed)
@@ -844,7 +845,7 @@ Skills are defined in `.claude/skills/` directories containing:
 
 **Composite Banners**: Generate consistent logo banners across multiple sizes from a JSON config using ImageMagick. Use when the user has an existing logo and wants multi-size branded banners (not creative/artistic designs). Quick start: `--init` to scaffold config, `--validate` to check, then generate. See [composite reference](.claude/skills/ai-image-creator/references/composite-reference.md) for full config schema.
 
-**Image Analysis**: Describe, analyze, or explain existing images using multimodal AI vision (`--analyze`). Returns text-only JSON output — no image generated. Pass `-r` with the image file and optionally `-p` with a custom prompt. Multimodal models only (gemini, gpt5). Example: `--analyze -r photo.png -p "What text is visible?"`.
+**Image Analysis**: Describe, analyze, or explain existing images using multimodal AI vision (`--analyze`). Returns text-only JSON output — no image generated. Pass `-r` with the image file and optionally `-p` with a custom prompt. Multimodal models only (gemini, gpt5, gpt5.4). Example: `--analyze -r photo.png -p "What text is visible?"`.
 
 **Usage**: `/ai-image-creator` or invoke via Skill tool when user asks to generate images, create PNGs, make visual assets, or describe/analyze existing images.
 

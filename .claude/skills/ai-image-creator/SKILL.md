@@ -1,10 +1,10 @@
 ---
 name: ai-image-creator
-description: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, proxied through Cloudflare AI Gateway BYOK). Also analyze/describe existing images using multimodal AI vision. Use when user asks to "generate an image", "create a PNG", "make an icon", "make it transparent", "describe this image", "analyze this image", "what's in this image", "explain this image", or needs AI-generated visual assets for the project. Supports model selection via keywords (gemini, riverflow, flux2, seedream, gpt5), configurable aspect ratios/resolutions, transparent backgrounds (-t), reference image editing (-r), image analysis (--analyze), and per-project cost tracking (--costs).
+description: Generate PNG images using AI (multiple models via OpenRouter including Gemini, FLUX.2, Riverflow, SeedDream, GPT-5 Image, GPT-5.4 Image 2, proxied through Cloudflare AI Gateway BYOK). Also analyze/describe existing images using multimodal AI vision. Use when user asks to "generate an image", "create a PNG", "make an icon", "make it transparent", "describe this image", "analyze this image", "what's in this image", "explain this image", or needs AI-generated visual assets for the project. Supports model selection via keywords (gemini, riverflow, flux2, seedream, gpt5, gpt5.4), configurable aspect ratios/resolutions, transparent backgrounds (-t), reference image editing (-r), image analysis (--analyze), and per-project cost tracking (--costs).
 allowed-tools: Bash, Read, Write
 compatibility: Requires uv (Python runner) and network access. Environment variables for CF AI Gateway or direct API keys must be configured in shell profile (~/.zshrc on macOS, ~/.bashrc on Linux, or System Environment Variables on Windows).
 metadata:
-  tags: image-generation, ai, openrouter, cloudflare, gemini, flux2, riverflow, seedream, gpt5
+  tags: image-generation, ai, openrouter, cloudflare, gemini, flux2, riverflow, seedream, gpt5, gpt54
 ---
 
 # AI Image Creator
@@ -22,6 +22,7 @@ When the user mentions a model keyword in their image request, use the correspon
 | `flux2` | [FLUX.2 Max](https://openrouter.ai/black-forest-labs/flux.2-max) | "flux2", "flux", "use flux" |
 | `seedream` | [ByteDance SeedDream 4.5](https://openrouter.ai/bytedance-seed/seedream-4.5) | "seedream", "use seedream" |
 | `gpt5` | [OpenAI GPT-5 Image](https://openrouter.ai/openai/gpt-5-image) | "gpt5", "gpt5 image", "use gpt5" |
+| `gpt5.4` | [OpenAI GPT-5.4 Image 2](https://openrouter.ai/openai/gpt-5.4-image-2) | "gpt5.4", "gpt-5.4 image", "use gpt5.4" |
 
 ## Instructions
 
