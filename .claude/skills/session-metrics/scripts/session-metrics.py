@@ -4343,6 +4343,7 @@ tr.turn-row:focus{outline:1px solid var(--accent);outline-offset:-1px}
 .tcol .tc-bar .seg.o{background:#5EE2C6}
 .tcol .tc-bar .seg.cw{background:#FBBF24}
 .tcol .tc-bar .seg.cr{background:var(--accent);opacity:.3}
+.tcol .tc-bar .seg.cost{background:var(--accent)}
 .tcol .tc-foot{height:var(--foot-h);padding-top:6px;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;overflow:hidden}
 .tcol .tc-foot .tc-n{color:var(--accent);font-weight:500}
 .tcol .tc-foot .tc-time{opacity:.6;font-size:9px}
@@ -5034,9 +5035,9 @@ def render_html(report: dict, variant: str = "single",
     """
     if report.get("mode") == "instance":
         return _render_instance_html(report, chart_lib=chart_lib)
-    include_insights = variant in ("single", "dashboard")
-    include_chart    = variant in ("single", "detail")
-    include_hc_chart = variant == "single"   # Highcharts 3D for single only; detail uses chartrail
+    include_insights = variant in ("single", "dashboard", "project")
+    include_chart    = variant in ("single", "detail", "project")
+    include_hc_chart = variant == "single"   # Highcharts 3D for single only; detail/project use chartrail
     slug = report["slug"]
     totals = report["totals"]
     mode = report["mode"]
@@ -6449,7 +6450,7 @@ def _dispatch_instance(instance_report: dict,
             print(f"[{i}/{total}] Rendering drilldown: {slug}...",
                   file=sys.stderr)
             try:
-                html_str = render_html(pr, variant="single",
+                html_str = render_html(pr, variant="project",
                                         chart_lib=chart_lib)
             except (ValueError, KeyError, RuntimeError) as exc:
                 print(f"[warn] {slug}: HTML render failed ({exc})",
