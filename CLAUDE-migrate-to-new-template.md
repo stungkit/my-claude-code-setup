@@ -17,12 +17,12 @@ Read CLAUDE-migrate-to-new-template.md and my current CLAUDE.md. Migrate my CLAU
 
 | Aspect | Template 1 | Template 2 | Template 3 |
 |--------|-----------|-----------|-----------|
-| **File** | `CLAUDE-template-1.md` | `CLAUDE-template-2.md` | `CLAUDE-template-3.md` |
+| **File** | [`CLAUDE-template-1.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-1.md) | [`CLAUDE-template-2.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-2.md) | [`CLAUDE-template-3.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-3.md) |
 | **Lines** | ~101 | ~153 | ~105 |
 | **Philosophy** | Compact self-contained | Memory bank headline + dual memory | Progressive disclosure native |
 | **Rules location** | Inline bullets | Inline grouped sections | External `.claude/rules/core-rules.md` |
 | **Memory system** | Table + resilience section | Full workflow + dual-memory comparison | Dual-table (primary + shadow) |
-| **External deps** | None | None (optional `.claude/rules/`) | Requires `.claude/rules/core-rules.md` |
+| **External deps** | None | None (optional `.claude/rules/`) | Requires [`.claude/rules/core-rules.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/.claude/rules/core-rules.md) |
 | **Best for** | Quick starts, small projects | Existing memory bank users | Teams wanting max context efficiency |
 
 ---
@@ -56,7 +56,12 @@ If the user hasn't specified, recommend based on their existing setup:
 
 ### Step 3: Migrate Content
 
-Read the chosen `CLAUDE-template-[1|2|3].md` file and populate it:
+Read the chosen template file and populate it. If the template files are not in the local project, fetch them from:
+
+- [`CLAUDE-template-1.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-1.md)
+- [`CLAUDE-template-2.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-2.md)
+- [`CLAUDE-template-3.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/CLAUDE-template-3.md)
+- [`.claude/rules/core-rules.md`](https://github.com/centminmod/my-claude-code-setup/raw/refs/heads/master/.claude/rules/core-rules.md) (required for Template 3)
 
 #### For All Templates
 
