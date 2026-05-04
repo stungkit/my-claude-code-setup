@@ -1,5 +1,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/stargazers) [![GitHub forks](https://img.shields.io/github/forks/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/network) [![GitHub issues](https://img.shields.io/github/issues/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/issues)
 
+> **May 4, 2026 — CLAUDE.md template updated.** The `CLAUDE.md` template has been modernized with 3 new variants (`CLAUDE-template-1.md`, `CLAUDE-template-2.md`, `CLAUDE-template-3.md`) following official Anthropic best practices — including dual-memory architecture, progressive disclosure, and standalone behavioral rules. Existing users: use [`CLAUDE-migrate-to-new-template.md`](CLAUDE-migrate-to-new-template.md) as an AI prompt to migrate your current CLAUDE.md to any of the new templates while preserving all your project-specific content. See the [CLAUDE.md Templates](#claudemd-templates) section for details.
+
 * My AI journey Substack to follow me in more indepth AI adventures - https://ai.georgeliu.com
 * Threads - https://www.threads.com/@george_sl_liu
 * BlueSky - https://bsky.app/profile/georgesl.bsky.social
@@ -17,7 +19,7 @@ The beauty of using AI is that I can get AI to generate alternate Read Me guides
 
 ## Overview
 
-My Claude Code project's starter settings and Claude Code hooks and slash commands are provided in this repository for users to try out. The [CLAUDE.md](https://github.com/centminmod/my-claude-code-setup/blob/master/CLAUDE.md) is setup as set of memory bank files to better retain context over many chat sessions. Be sure to read the official Claude Code docs first at <https://docs.anthropic.com/en/docs/claude-code/overview> and sign up for a [paid Claude AI account](https://claude.ai/) to use Claude Code. You can pay for Claude Pro $20/month, Claude Max $100/month or Claude Max $200/month. The paid Claude tier plans will include varying quotas for usage and rate limits outlined [here](https://support.anthropic.com/en/articles/9797557-usage-limit-best-practices). You can also use Claude Code with [Z.AI](#using-zai-with-claude-code) to get higher token usage quotas and get access to Z.AI GLM-4.7 LLM models within Claude Code. Use [Z.AI invite code for additional 10% discount](https://z.ai/subscribe?ic=WWB8IFLROM) which can stack with current 50-60% yearly discounts.
+My Claude Code project's starter settings and Claude Code hooks and slash commands are provided in this repository for users to try out. The [CLAUDE.md](https://github.com/centminmod/my-claude-code-setup/blob/master/CLAUDE.md) is setup as set of memory bank files to better retain context over many chat sessions. The repo now includes [3 CLAUDE.md templates](#claudemd-templates) following official Anthropic best practices with progressive disclosure, dual-memory architecture, and a [migration guide](CLAUDE-migrate-to-new-template.md) for existing users. Be sure to read the official Claude Code docs first at <https://docs.anthropic.com/en/docs/claude-code/overview> and sign up for a [paid Claude AI account](https://claude.ai/) to use Claude Code. You can pay for Claude Pro $20/month, Claude Max $100/month or Claude Max $200/month. The paid Claude tier plans will include varying quotas for usage and rate limits outlined [here](https://support.anthropic.com/en/articles/9797557-usage-limit-best-practices). You can also use Claude Code with [Z.AI](#using-zai-with-claude-code) to get higher token usage quotas and get access to Z.AI GLM-4.7 LLM models within Claude Code. Use [Z.AI invite code for additional 10% discount](https://z.ai/subscribe?ic=WWB8IFLROM) which can stack with current 50-60% yearly discounts.
 
 1. Copy the files in this Github repo to your project directory (where you intended codebase will be).
 2. Modify the template files and CLAUDE.md`to your liking. `.claude/settings.json` needs to install Terminal-Notifier for macOS https://github.com/centminmod/terminal-notifier-setup. If you're not using macOS, you can remove `.claude/settings.json`.
@@ -76,6 +78,27 @@ My Claude Code project's starter settings and Claude Code hooks and slash comman
 
   The memory bank documentation updates are ready to commit. Would you like me to commit them
 ```
+
+## CLAUDE.md Templates
+
+This repo provides 3 modernized CLAUDE.md templates following [official Anthropic best practices](https://code.claude.com/docs/en/memory):
+
+| Template | Lines | Philosophy | Best For |
+|----------|-------|------------|----------|
+| [`CLAUDE-template-1.md`](CLAUDE-template-1.md) | ~101 | Compact self-contained + memory resilience | Quick starts, small projects |
+| [`CLAUDE-template-2.md`](CLAUDE-template-2.md) | ~153 | Memory bank headline + dual memory | Existing memory bank users |
+| [`CLAUDE-template-3.md`](CLAUDE-template-3.md) | ~105 | Progressive disclosure native | Teams, max context efficiency |
+
+The current `CLAUDE.md` uses the Template 3 format. All templates include:
+- Dual-memory architecture (git-shared CLAUDE-*.md + machine-local auto memory for resilience)
+- Progressive disclosure (memory bank files read on-demand, not auto-loaded)
+- Standalone behavioral rules (no dependency on `~/.claude/CLAUDE.md`)
+
+**Migrating an existing CLAUDE.md?** See [`CLAUDE-migrate-to-new-template.md`](CLAUDE-migrate-to-new-template.md) — paste it as a prompt and Claude Code will migrate your content to your chosen template format.
+
+**Tip:** HTML comments (`<!-- -->`) in CLAUDE.md are stripped from context at runtime and cost zero tokens. The templates use them for guidance notes — you can add your own without impacting Claude's context window.
+
+**Companion rules file:** Template 3 requires [`.claude/rules/core-rules.md`](.claude/rules/core-rules.md) for behavioral rules. Templates 1 and 2 have rules inline but can optionally use it.
 
 ## MCP Servers
 
@@ -856,9 +879,9 @@ jobs:
 
 Claude Code now supports [Agent Skills](https://docs.claude.com/en/docs/claude-code/skills).
 
-### claude-docs-consultant
+### claude-code-guide (Built-in)
 
-- **Purpose**: A specialized Claude skill which will selectively consult the official Claude Code documentation from docs.claude.com using selective fetching. This skill will invoke only when working on Claude Code hooks, skills, subagents, MCP servers, or any Claude Code feature that requires referencing official documentation for accurate implementation. Fetches only the specific documentation needed rather than loading all docs upfront
+- **Purpose**: A natively built-in Claude Code subagent for questions about Claude Code CLI features, hooks, slash commands, MCP servers, settings, IDE integrations, keyboard shortcuts, Claude Agent SDK for building custom agents, and Claude API usage including tool use and Anthropic SDK. No installation required — available automatically in all Claude Code sessions
 
 ### consult-zai
 

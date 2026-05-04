@@ -1,5 +1,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/stargazers) [![GitHub forks](https://img.shields.io/github/forks/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/network) [![GitHub issues](https://img.shields.io/github/issues/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/issues)
 
+> **May 4, 2026 — CLAUDE.md template updated.** The `CLAUDE.md` template has been modernized with 3 new variants (`CLAUDE-template-1.md`, `CLAUDE-template-2.md`, `CLAUDE-template-3.md`) following official Anthropic best practices — including dual-memory architecture, progressive disclosure, and standalone behavioral rules. Existing users: use [`CLAUDE-migrate-to-new-template.md`](CLAUDE-migrate-to-new-template.md) as an AI prompt to migrate your current CLAUDE.md to any of the new templates while preserving all your project-specific content. See [4.5 CLAUDE.md Templates](#45-claudemd-templates) for details.
+
 * Threads - https://www.threads.com/@george_sl_liu
 * BlueSky - https://bsky.app/profile/georgesl.bsky.social
 
@@ -169,7 +171,12 @@ Browse the repository on GitHub and download individual files:
 
 | Component | Path | Purpose |
 |-----------|------|---------|
-| Memory Bank | `CLAUDE.md` | Main context file |
+| Memory Bank | `CLAUDE.md` | Main context file (Template 3 format) |
+| Template 1 | `CLAUDE-template-1.md` | Compact self-contained template |
+| Template 2 | `CLAUDE-template-2.md` | Memory bank system template |
+| Template 3 | `CLAUDE-template-3.md` | Progressive disclosure template |
+| Migration Guide | `CLAUDE-migrate-to-new-template.md` | AI-prompt migration guide |
+| Rules | `.claude/rules/core-rules.md` | Behavioral rules (required by Template 3) |
 | Settings | `.claude/settings.json` | Configuration template |
 | Commands | `.claude/commands/` | Custom slash commands |
 | Skills | `.claude/skills/` | Custom skills |
@@ -255,16 +262,21 @@ The Memory Bank System enables Claude Code to maintain context across multiple c
 
 ```
 project-root/
-├── CLAUDE.md                      # Main entry point
-├── CLAUDE-activeContext.md        # Current session state
-├── CLAUDE-patterns.md             # Code patterns
-├── CLAUDE-decisions.md            # Architecture Decision Records
-├── CLAUDE-troubleshooting.md      # Issue/solution database
-├── CLAUDE-config-variables.md     # Configuration reference
-├── CLAUDE-temp.md                 # Temporary scratch pad
-├── CLAUDE-cloudflare.md           # Optional: Cloudflare/ClerkOS docs
-├── CLAUDE-cloudflare-mini.md      # Optional: Cloudflare mini reference
-└── CLAUDE-convex.md               # Optional: Convex database docs
+├── CLAUDE.md                          # Main entry point (Template 3 format)
+├── CLAUDE-template-1.md              # Compact self-contained template
+├── CLAUDE-template-2.md              # Memory bank system template
+├── CLAUDE-template-3.md              # Progressive disclosure template
+├── CLAUDE-migrate-to-new-template.md # Template migration guide
+├── CLAUDE-activeContext.md            # Current session state
+├── CLAUDE-patterns.md                 # Code patterns
+├── CLAUDE-decisions.md                # Architecture Decision Records
+├── CLAUDE-troubleshooting.md          # Issue/solution database
+├── CLAUDE-config-variables.md         # Configuration reference
+├── CLAUDE-temp.md                     # Temporary scratch pad
+├── CLAUDE-cloudflare.md               # Optional: Cloudflare/ClerkOS docs
+├── CLAUDE-cloudflare-mini.md          # Optional: Cloudflare mini reference
+├── CLAUDE-convex.md                   # Optional: Convex database docs
+└── .claude/rules/core-rules.md        # Behavioral rules (required by Template 3)
 ```
 
 ### 4.3 Loading Behavior
@@ -283,10 +295,30 @@ project-root/
 
 Memory bank files consume context window tokens. Optimization strategies:
 
+- **Use HTML comments for free notes**: `<!-- -->` comments in CLAUDE.md are stripped from context at runtime and cost zero tokens — ideal for maintainer notes, TODOs, and placeholder guidance that only humans see
 - Use `/cleanup-context` command for 15-25% token reduction
 - Archive older decisions and patterns
 - Keep `CLAUDE-temp.md` empty when not in use
 - Reference supplementary docs (`CLAUDE-cloudflare.md`) only when needed
+
+### 4.5 CLAUDE.md Templates
+
+This repo provides 3 modernized templates following [official Anthropic best practices](https://code.claude.com/docs/en/memory):
+
+| Template | Lines | Philosophy | Rules Location | Best For |
+|----------|-------|------------|---------------|----------|
+| `CLAUDE-template-1.md` | ~101 | Compact self-contained | Inline bullets | Quick starts, small projects |
+| `CLAUDE-template-2.md` | ~153 | Memory bank headline + dual memory | Inline grouped sections | Existing memory bank users |
+| `CLAUDE-template-3.md` | ~105 | Progressive disclosure native | `.claude/rules/core-rules.md` | Teams, max context efficiency |
+
+All templates include:
+- **Dual-memory architecture**: Git-shared CLAUDE-*.md + machine-local auto memory for resilience
+- **Progressive disclosure**: Memory bank files read on-demand, not `@` auto-loaded
+- **Standalone behavioral rules**: No dependency on `~/.claude/CLAUDE.md`
+
+The current `CLAUDE.md` uses the Template 3 format. Template 3 requires `.claude/rules/core-rules.md` for externalized behavioral rules; Templates 1 and 2 have rules inline.
+
+**Migration**: `CLAUDE-migrate-to-new-template.md` is an AI-prompt guide — paste it as a prompt and Claude Code will migrate an existing CLAUDE.md to the chosen template while preserving all project-specific content.
 
 ---
 
@@ -767,19 +799,19 @@ Skills are defined in `.claude/skills/` directories containing:
 
 | Skill | Purpose | Invocation | Location |
 |-------|---------|------------|----------|
-| claude-docs-consultant | Fetch official Claude Code documentation | Automatic when working on Claude Code features | `.claude/skills/claude-docs-consultant/` |
+| claude-code-guide (built-in) | Claude Code CLI features, hooks, MCP, settings, Agent SDK, API usage | Automatic when working on Claude Code features | Built-in (no installation) |
 | consult-zai | Dual-AI consultation: z.ai GLM 4.7 vs code-searcher | `/consult-zai "question"` or via Skill tool | `.claude/skills/consult-zai/` |
 | consult-codex | Dual-AI consultation: Codex GPT-5.2 vs code-searcher | `/consult-codex "question"` or via Skill tool | `.claude/skills/consult-codex/` |
 | ai-image-creator | Generate PNG images using AI (multiple models via OpenRouter) | `/ai-image-creator` or via Skill tool | `.claude/skills/ai-image-creator/` |
 | session-metrics | Parse JSONL logs for per-turn token/cost/cache metrics with multi-format export | Auto-triggers on cost/usage questions or manual CLI | `.claude/skills/session-metrics/` |
 
-#### claude-docs-consultant
+#### claude-code-guide (Built-in)
 
-**Purpose**: Selectively consults official Claude Code documentation from docs.claude.com.
+**Purpose**: Natively built-in Claude Code subagent for questions about Claude Code CLI features, hooks, slash commands, MCP servers, settings, IDE integrations, keyboard shortcuts, Claude Agent SDK, and Claude API usage.
 
-**Triggers**: Working on hooks, skills, subagents, MCP servers, or any Claude Code feature requiring official documentation.
+**Triggers**: Automatic when working on Claude Code features or asking about Claude Code capabilities.
 
-**Behavior**: Fetches only specific documentation needed rather than loading all docs upfront.
+**Behavior**: No installation required — available in all Claude Code sessions. Provides accurate, up-to-date guidance by searching official documentation.
 
 #### consult-zai
 

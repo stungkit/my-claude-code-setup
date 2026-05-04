@@ -1,5 +1,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/stargazers) [![GitHub forks](https://img.shields.io/github/forks/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/network) [![GitHub issues](https://img.shields.io/github/issues/centminmod/my-claude-code-setup.svg?style=flat-square)](https://github.com/centminmod/my-claude-code-setup/issues)
 
+> **May 4, 2026 — CLAUDE.md template updated.** The `CLAUDE.md` template has been modernized with 3 new variants (`CLAUDE-template-1.md`, `CLAUDE-template-2.md`, `CLAUDE-template-3.md`) following official Anthropic best practices — including dual-memory architecture, progressive disclosure, and standalone behavioral rules. Existing users: use [`CLAUDE-migrate-to-new-template.md`](CLAUDE-migrate-to-new-template.md) as an AI prompt to migrate your current CLAUDE.md to any of the new templates while preserving all your project-specific content. See [Choosing a CLAUDE.md Template](#choosing-a-claudemd-template) for details.
+
 * Threads - https://www.threads.com/@george_sl_liu
 * BlueSky - https://bsky.app/profile/georgesl.bsky.social
 
@@ -81,8 +83,13 @@ cp -r /path/to/my-claude-code-setup/.claude/hooks your-project/.claude/
 #### Option C: Download from GitHub
 
 Browse the repository and download individual files:
-- `CLAUDE.md` - Memory bank main file
+- `CLAUDE.md` - Memory bank main file (uses Template 3 format)
+- `CLAUDE-template-1.md` - Compact self-contained template
+- `CLAUDE-template-2.md` - Memory bank system template
+- `CLAUDE-template-3.md` - Progressive disclosure template
+- `CLAUDE-migrate-to-new-template.md` - Template migration guide
 - `.claude/settings.json` - Settings template
+- `.claude/rules/core-rules.md` - Behavioral rules (required by Template 3)
 - `.claude/commands/` - Slash commands
 - `.claude/skills/` - Skills
 - `.claude/agents/` - Subagents
@@ -126,6 +133,10 @@ The Memory Bank System helps Claude Code remember context across chat sessions. 
 | `CLAUDE-config-variables.md` | Configuration variables reference |
 | `CLAUDE-temp.md` | Temporary scratch pad (only read when referenced) |
 
+### Token-Free Notes
+
+HTML comments (`<!-- -->`) in CLAUDE.md are stripped from context at runtime and cost zero tokens. The templates use them for guidance notes — you can add your own without impacting Claude's context window.
+
 ### Initial Setup
 
 1. Copy template files from this repository to your project root
@@ -162,6 +173,20 @@ Claude Code will update all relevant CLAUDE-*.md files with your latest changes.
 ```
 
 > **See also:** [Customization](#i-want-to-customize-claudes-behavior) for creating custom subagents that sync memory bank with code
+
+### Choosing a CLAUDE.md Template
+
+This repo provides 3 modernized templates following [official Anthropic best practices](https://code.claude.com/docs/en/memory):
+
+| Template | Lines | Best For |
+|----------|-------|----------|
+| `CLAUDE-template-1.md` | ~101 | Quick starts — compact, self-contained, all rules inline |
+| `CLAUDE-template-2.md` | ~153 | Existing memory bank users — full workflow, dual-memory comparison |
+| `CLAUDE-template-3.md` | ~105 | Teams — progressive disclosure, rules externalized to `.claude/rules/` |
+
+All templates include dual-memory architecture and progressive disclosure. The current `CLAUDE.md` uses Template 3 format.
+
+**Already have a CLAUDE.md?** Use `CLAUDE-migrate-to-new-template.md` as a prompt — Claude Code will migrate your existing content to your chosen template while preserving all project-specific information.
 
 ---
 
@@ -517,7 +542,7 @@ Skills provide specialized capabilities. See [official docs](https://docs.claude
 
 | Skill | What it does |
 |-------|-------------|
-| **claude-docs-consultant** | Selectively fetches official Claude Code documentation |
+| **claude-code-guide** (built-in) | Natively built-in subagent for Claude Code CLI features, hooks, MCP servers, settings, Agent SDK, and API usage |
 | **consult-zai** | Dual-AI consultation comparing z.ai GLM 4.7 and code-searcher responses |
 | **consult-codex** | Dual-AI consultation comparing Codex GPT-5.2 and code-searcher responses |
 | **ai-image-creator** | Generate PNG images using AI (Gemini, FLUX.2, Riverflow, SeedDream, GPT-5, GPT-5.4 Image 2) with configurable aspect ratios and resolutions. Supports transparent backgrounds (`-t`), reference image editing (`-r`), image analysis/description (`--analyze`), cost tracking (`--costs`), prompt enhancement patterns, and composite banner generation for multi-size logo banners. Requires [setup](.claude/skills/ai-image-creator/references/setup-guide.md) |
